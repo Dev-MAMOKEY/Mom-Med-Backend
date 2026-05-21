@@ -1,0 +1,37 @@
+services:
+  postgres:
+    # 안정적인 PostgreSQL 16 Alpine 이미지를 사용합니다. 프로젝트 요구사항인 PostgreSQL 14+를 만족합니다.
+    image: postgres:16-alpine
+
+    # smoke test와 docker exec 명령에서 식별하기 쉽게 고정 컨테이너명을 사용합니다.
+    container_name: postgres
+
+    # 로컬 개발 중 Docker 재시작 후에도 DB가 다시 올라오도록 설정합니다.
+    restart: unless-stopped
+
+    # 호스트 5432 포트를 컨테이너 5432 포트에 연결해 Spring Boot가 localhost로 접근할 수 있게 합니다.
+    ports:
+      - "5432:5432"
+
+    environment:
+      # DB 이름/계정/비밀번호는 .env에서 주입합니다. 실제 비밀번호를 compose 파일에 적지 않습니다.
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      TZ: Asia/Seoul
+
+    volumes:
+      # 컨테이너를 지워도 PostgreSQL 데이터가 유지되도록 named volume을 사용합니다.
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      # PostgreSQL이 실제 연결을 받을 준비가 되었는지 확인합니다.
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  # PostgreSQL 데이터 파일을 보관하는 Docker named volume입니다.
+  postgres_data:
