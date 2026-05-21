@@ -1,0 +1,175 @@
+{
+  "version": "v0.1-trial",
+  "curated_at": "2026-05-20",
+  "target_persona": "72세 어머니, 당뇨·고혈압·관절염·경도인지장애",
+  "rules": [
+    {
+      "disease_code": "I10",
+      "disease_name": "본태성 고혈압",
+      "weather_alert": "폭염주의보",
+      "severity": "주의",
+      "title": "어머님 폭염 — 혈압약 효과 강해질 수 있어요",
+      "message_template": "어머님 오늘 폭염주의보예요. 땀을 많이 흘리면 혈압약(특히 이뇨제) 효과가 강해져서 어지럼증이 올 수 있어요. 물을 평소보다 자주 드시도록 안부 전화 한 번 부탁드려요. 한낮 외출은 피하시도록 권해주세요.",
+      "specific_drugs_to_note": ["이뇨제", "칼슘채널 차단제(CCB)"],
+      "patient_actions": [
+        "수분을 평소보다 자주 섭취 (한 번에 많이 말고 조금씩 자주)",
+        "정오~17시 야외활동 피하기",
+        "어지럼·기립성 저혈압 증상 발생 시 즉시 앉거나 눕기",
+        "알코올·카페인 줄이기"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md", "quote": "이뇨제 복용 + 발한 → 탈수·저나트륨혈증 / 칼슘채널 차단제 + 더위 → 저혈압·어지럼"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md", "quote": "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"}
+      ],
+      "rationale": "폭염 시 발한·탈수가 이뇨제·CCB 등 강압제 효과를 증폭시켜 저혈압·저나트륨혈증 위험이 증가한다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "I10",
+      "disease_name": "본태성 고혈압",
+      "weather_alert": "폭염경보",
+      "severity": "위험",
+      "title": "어머님 폭염경보 — 탈수·어지럼 응급주의",
+      "message_template": "어머님 오늘 폭염경보예요. 고혈압 약(특히 이뇨제) 드시는 분은 탈수로 저나트륨혈증(혈액 속 나트륨이 부족해지는 상태)이 올 수 있어요. 어지럼·메스꺼움·기운 없음이 평소보다 심하면 바로 시원한 곳에 눕히시고 연락 주세요. 오늘은 외출 자제 부탁드려요.",
+      "specific_drugs_to_note": ["이뇨제", "칼슘채널 차단제(CCB)"],
+      "patient_actions": [
+        "외출 금지, 실내 시원하고 쾌적하게 유지",
+        "수분 자주 섭취 (한 번에 200ml 미만씩 자주)",
+        "어지럼·구역·실신 전조 시 즉시 119 또는 자녀에게 연락",
+        "한낮 샤워는 미지근한 물로"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md", "quote": "부작용 모니터링: **저나트륨혈증** (← 폭염 시 가중), 변비, 마른기침"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md", "quote": "실내가 시원하고 쾌적하게 유지되도록 온·습도 관리"}
+      ],
+      "rationale": "폭염경보 수준에서는 고혈압 노인의 탈수·저나트륨혈증·기립성 저혈압이 응급상황으로 진행될 수 있다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "I10",
+      "disease_name": "본태성 고혈압",
+      "weather_alert": "한파주의보",
+      "severity": "주의",
+      "title": "어머님 한파 — 아침 외출과 온도차 주의",
+      "message_template": "어머님 오늘 한파주의보예요. 추우면 혈관이 좁아져서 혈압이 갑자기 올라갈 수 있어요. 새벽·이른 아침 외출은 피하시고, 나가실 땐 모자·목도리·장갑 꼭 챙기시도록 알려주세요. 실내 온도는 18~20℃, 너무 덥지 않게 유지하셔야 실내외 온도차로 인한 사고를 줄일 수 있어요.",
+      "specific_drugs_to_note": [],
+      "patient_actions": [
+        "이른 아침·새벽 외출 자제, 해 뜬 뒤 외출",
+        "모자·목도리·장갑 착용으로 체온 손실 줄이기",
+        "실내 온도 18~20℃, 습도 40~50% 유지",
+        "술·카페인 음료 피하기"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "모자, 장갑, 마스크 및 목도리를 착용"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md", "quote": "한파 시 혈관 수축으로 혈압 급등 위험"}
+      ],
+      "rationale": "한파 시 말초혈관 수축으로 혈압이 급등하고, 특히 새벽 외출 시 뇌·심혈관 사고 위험이 증가한다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "I10",
+      "disease_name": "본태성 고혈압",
+      "weather_alert": "한파경보",
+      "severity": "위험",
+      "title": "어머님 한파경보 — 외출 금지, 눈 치우기 절대 금물",
+      "message_template": "어머님 오늘 한파경보예요. 고혈압 있으신 분은 추위에 혈압이 급격히 올라 뇌·심혈관 사고 위험이 커져요. 오늘은 외출 삼가시고, 눈 치우기 같은 힘쓰는 일은 절대 하지 마시도록 꼭 전해주세요. 실내도 너무 춥지 않게 22~24℃ 정도로 따뜻하게 유지 부탁드려요.",
+      "specific_drugs_to_note": [],
+      "patient_actions": [
+        "외출 금지, 부득이한 경우 천천히 잔걸음",
+        "눈 치우기 등 힘쓰는 활동 절대 금지",
+        "실내 온도 취약계층 기준 22~24℃ 이상 유지",
+        "가슴 통증·두통·한쪽 마비 등 발생 시 즉시 119"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "고혈압·심뇌혈관질환자는 눈 치우기 등 활동 자제"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "실내온도가 22-24℃ 정도라고 해도 체온이 떨어질 수 있으므로 주의"}
+      ],
+      "rationale": "한파경보 수준에서는 혈관 수축으로 인한 혈압 급등이 뇌출혈·심근경색 등 치명적 사건으로 이어질 수 있다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "E11",
+      "disease_name": "2형 당뇨병",
+      "weather_alert": "폭염주의보",
+      "severity": "주의",
+      "title": "어머님 폭염 — 저혈당·탈수 주의",
+      "message_template": "어머님 오늘 폭염주의보예요. 더위로 식사량이 줄거나 땀을 많이 흘리면 저혈당이 올 수 있어요. 자가혈당 측정을 평소보다 한 번 더 하시도록 권하시고, 식사 거르지 않으셨는지 안부 전화 부탁드려요. 어지럼·식은땀·손떨림 있으면 사탕이나 주스 바로 드시도록 알려주세요.",
+      "specific_drugs_to_note": ["인슐린", "설포닐우레아(글리메피리드 등)"],
+      "patient_actions": [
+        "자가혈당측정 빈도 늘리기",
+        "규칙적인 세끼 식사 유지",
+        "수분 자주 섭취 (당분 없는 물 위주)",
+        "저혈당 대비 사탕·주스 휴대"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md", "quote": "발한 + 인슐린/SU계 약물 → 저혈당 위험 / 탈수가 모호한 증상과 혼동"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md", "quote": "하루 세끼 규칙적 식사"}
+      ],
+      "rationale": "폭염 시 식욕 저하와 발한이 인슐린·설포닐우레아 효과를 증폭시켜 노인 당뇨 환자에서 저혈당 위험이 증가한다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "E11",
+      "disease_name": "2형 당뇨병",
+      "weather_alert": "폭염경보",
+      "severity": "위험",
+      "title": "어머님 폭염경보 — 저혈당·탈수 응급",
+      "message_template": "어머님 오늘 폭염경보예요. 당뇨 어르신은 다약제 복용으로 저혈당 위험이 평소보다 훨씬 커져요. 식사 꼭 챙기시고, 혈당 측정 자주 부탁드려요. 식은땀·의식 흐림·평소와 다른 피로감이 있으면 바로 사탕 드시게 한 뒤 119 연락하세요. 오늘은 외출 자제가 안전합니다.",
+      "specific_drugs_to_note": ["인슐린", "설포닐우레아(글리메피리드 등)"],
+      "patient_actions": [
+        "외출 자제, 실내 시원하게 유지",
+        "혈당 측정 평소의 2배 이상",
+        "저혈당 의심 시 즉시 사탕·주스 섭취 후 15분 뒤 재측정",
+        "의식 저하 시 즉시 119"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md", "quote": "다약제 복용으로 저혈당 위험 증가"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md", "quote": "피로감 등 모호한 증상 → 폭염 시 탈수 증상과 혼동 위험"}
+      ],
+      "rationale": "폭염경보 수준에서는 당뇨 노인의 저혈당·탈수가 의식저하 등 응급상황으로 진행될 수 있으며 증상 인지가 늦는다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "E11",
+      "disease_name": "2형 당뇨병",
+      "weather_alert": "한파주의보",
+      "severity": "주의",
+      "title": "어머님 한파 — 실내 운동과 혈당 변동 주의",
+      "message_template": "어머님 오늘 한파주의보예요. 추워서 안 움직이시면 혈당이 올라가고, 반대로 식욕이 늘어도 혈당 변동이 커져요. 집 안에서 가벼운 스트레칭이나 실내 걷기 하시도록 권해주시고, 혈당 측정 한 번 더 챙기시도록 안부 전화 부탁드려요.",
+      "specific_drugs_to_note": [],
+      "patient_actions": [
+        "실내에서 가벼운 운동 (10~30분 스트레칭·걷기)",
+        "자가혈당 측정 빈도 유지",
+        "고른 영양 식사, 과식 주의",
+        "외출 시 손·발 보온 (당뇨 발 합병증 예방)"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md", "quote": "외출 감소 → 운동 부족 → 혈당 상승 / 추위로 식욕 증가 → 혈당 변동"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "가벼운 실내운동, 적절한 수분섭취와 고른 영양분을 갖춘 식사로 건강지키기"}
+      ],
+      "rationale": "한파 시 활동량 감소와 식이 변화로 혈당 변동성이 커지며, 노인 당뇨 환자에서 관리 부담이 가중된다.",
+      "general_knowledge_used": false
+    },
+    {
+      "disease_code": "E11",
+      "disease_name": "2형 당뇨병",
+      "weather_alert": "한파경보",
+      "severity": "경고",
+      "title": "어머님 한파경보 — 외출 자제·발 보온 필수",
+      "message_template": "어머님 오늘 한파경보예요. 당뇨 있으신 분은 추위에 손발 혈액순환이 더 안 좋아지고, 외출 시 낙상 위험도 커요. 오늘은 외출 자제 부탁드리고, 실내에서 가볍게라도 움직이시도록 권해주세요. 발이 차거나 색이 변하면 꼭 알려주시고, 미끄럼 방지 신발 없이는 절대 나가지 마세요.",
+      "specific_drugs_to_note": [],
+      "patient_actions": [
+        "외출 자제, 부득이한 경우 미끄럼 방지 신발 착용",
+        "발 보온 (양말 두 겹, 발 색·온도 점검)",
+        "실내에서 가벼운 운동 유지",
+        "행선지·외출 시간 가족에게 미리 알리기"
+      ],
+      "source_citations": [
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "절대 호주머니에 손을 넣지 말고 걷도록"},
+        {"file": "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md", "quote": "야외 활동 전에 가족이나 친구에게 행선지를 알려야"}
+      ],
+      "rationale": "한파경보 수준에서는 당뇨 노인의 말초순환 저하로 동상·당뇨발 위험과 낙상 위험이 동시에 증가한다.",
+      "general_knowledge_used": true
+    }
+  ]
+}

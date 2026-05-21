@@ -1,0 +1,965 @@
+﻿{
+    "version":  "v0.2-merged",
+    "curated_at":  "2026-05-20",
+    "target_persona":  "72세 어머니, 당뇨·고혈압·관절염·경도인지장애",
+    "total_rules":  32,
+    "rules":  [
+                  {
+                      "disease_code":  "I10",
+                      "disease_name":  "본태성 고혈압",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 폭염 — 혈압약 효과 강해질 수 있어요",
+                      "message_template":  "어머님 오늘 폭염주의보예요. 땀을 많이 흘리면 혈압약(특히 이뇨제) 효과가 강해져서 어지럼증이 올 수 있어요. 물을 평소보다 자주 드시도록 안부 전화 한 번 부탁드려요. 한낮 외출은 피하시도록 권해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "이뇨제",
+                                                     "칼슘채널 차단제(CCB)"
+                                                 ],
+                      "patient_actions":  [
+                                              "수분을 평소보다 자주 섭취 (한 번에 많이 말고 조금씩 자주)",
+                                              "정오~17시 야외활동 피하기",
+                                              "어지럼·기립성 저혈압 증상 발생 시 즉시 앉거나 눕기",
+                                              "알코올·카페인 줄이기"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md",
+                                                   "quote":  "이뇨제 복용 + 발한 → 탈수·저나트륨혈증 / 칼슘채널 차단제 + 더위 → 저혈압·어지럼"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "폭염 시 발한·탈수가 이뇨제·CCB 등 강압제 효과를 증폭시켜 저혈압·저나트륨혈증 위험이 증가한다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I10",
+                      "disease_name":  "본태성 고혈압",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 폭염경보 — 탈수·어지럼 응급주의",
+                      "message_template":  "어머님 오늘 폭염경보예요. 고혈압 약(특히 이뇨제) 드시는 분은 탈수로 저나트륨혈증(혈액 속 나트륨이 부족해지는 상태)이 올 수 있어요. 어지럼·메스꺼움·기운 없음이 평소보다 심하면 바로 시원한 곳에 눕히시고 연락 주세요. 오늘은 외출 자제 부탁드려요.",
+                      "specific_drugs_to_note":  [
+                                                     "이뇨제",
+                                                     "칼슘채널 차단제(CCB)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지, 실내 시원하고 쾌적하게 유지",
+                                              "수분 자주 섭취 (한 번에 200ml 미만씩 자주)",
+                                              "어지럼·구역·실신 전조 시 즉시 119 또는 자녀에게 연락",
+                                              "한낮 샤워는 미지근한 물로"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md",
+                                                   "quote":  "부작용 모니터링: **저나트륨혈증** (← 폭염 시 가중), 변비, 마른기침"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "실내가 시원하고 쾌적하게 유지되도록 온·습도 관리"
+                                               }
+                                           ],
+                      "rationale":  "폭염경보 수준에서는 고혈압 노인의 탈수·저나트륨혈증·기립성 저혈압이 응급상황으로 진행될 수 있다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I10",
+                      "disease_name":  "본태성 고혈압",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 한파 — 아침 외출과 온도차 주의",
+                      "message_template":  "어머님 오늘 한파주의보예요. 추우면 혈관이 좁아져서 혈압이 갑자기 올라갈 수 있어요. 새벽·이른 아침 외출은 피하시고, 나가실 땐 모자·목도리·장갑 꼭 챙기시도록 알려주세요. 실내 온도는 18~20℃, 너무 덥지 않게 유지하셔야 실내외 온도차로 인한 사고를 줄일 수 있어요.",
+                      "specific_drugs_to_note":  [
+
+                                                 ],
+                      "patient_actions":  [
+                                              "이른 아침·새벽 외출 자제, 해 뜬 뒤 외출",
+                                              "모자·목도리·장갑 착용으로 체온 손실 줄이기",
+                                              "실내 온도 18~20℃, 습도 40~50% 유지",
+                                              "술·카페인 음료 피하기"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md",
+                                                   "quote":  "한파 시 혈관 수축으로 혈압 급등 위험"
+                                               }
+                                           ],
+                      "rationale":  "한파 시 말초혈관 수축으로 혈압이 급등하고, 특히 새벽 외출 시 뇌·심혈관 사고 위험이 증가한다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I10",
+                      "disease_name":  "본태성 고혈압",
+                      "weather_alert":  "한파경보",
+                      "severity":  "위험",
+                      "title":  "어머님 한파경보 — 외출 금지, 눈 치우기 절대 금물",
+                      "message_template":  "어머님 오늘 한파경보예요. 고혈압 있으신 분은 추위에 혈압이 급격히 올라 뇌·심혈관 사고 위험이 커져요. 오늘은 외출 삼가시고, 눈 치우기 같은 힘쓰는 일은 절대 하지 마시도록 꼭 전해주세요. 실내도 너무 춥지 않게 22~24℃ 정도로 따뜻하게 유지 부탁드려요.",
+                      "specific_drugs_to_note":  [
+
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지, 부득이한 경우 천천히 잔걸음",
+                                              "눈 치우기 등 힘쓰는 활동 절대 금지",
+                                              "실내 온도 취약계층 기준 22~24℃ 이상 유지",
+                                              "가슴 통증·두통·한쪽 마비 등 발생 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "고혈압·심뇌혈관질환자는 눈 치우기 등 활동 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "실내온도가 22-24℃ 정도라고 해도 체온이 떨어질 수 있으므로 주의"
+                                               }
+                                           ],
+                      "rationale":  "한파경보 수준에서는 혈관 수축으로 인한 혈압 급등이 뇌출혈·심근경색 등 치명적 사건으로 이어질 수 있다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "E11",
+                      "disease_name":  "2형 당뇨병",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 폭염 — 저혈당·탈수 주의",
+                      "message_template":  "어머님 오늘 폭염주의보예요. 더위로 식사량이 줄거나 땀을 많이 흘리면 저혈당이 올 수 있어요. 자가혈당 측정을 평소보다 한 번 더 하시도록 권하시고, 식사 거르지 않으셨는지 안부 전화 부탁드려요. 어지럼·식은땀·손떨림 있으면 사탕이나 주스 바로 드시도록 알려주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "인슐린",
+                                                     "설포닐우레아(글리메피리드 등)"
+                                                 ],
+                      "patient_actions":  [
+                                              "자가혈당측정 빈도 늘리기",
+                                              "규칙적인 세끼 식사 유지",
+                                              "수분 자주 섭취 (당분 없는 물 위주)",
+                                              "저혈당 대비 사탕·주스 휴대"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md",
+                                                   "quote":  "발한 + 인슐린/SU계 약물 → 저혈당 위험 / 탈수가 모호한 증상과 혼동"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md",
+                                                   "quote":  "하루 세끼 규칙적 식사"
+                                               }
+                                           ],
+                      "rationale":  "폭염 시 식욕 저하와 발한이 인슐린·설포닐우레아 효과를 증폭시켜 노인 당뇨 환자에서 저혈당 위험이 증가한다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "E11",
+                      "disease_name":  "2형 당뇨병",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 폭염경보 — 저혈당·탈수 응급",
+                      "message_template":  "어머님 오늘 폭염경보예요. 당뇨 어르신은 다약제 복용으로 저혈당 위험이 평소보다 훨씬 커져요. 식사 꼭 챙기시고, 혈당 측정 자주 부탁드려요. 식은땀·의식 흐림·평소와 다른 피로감이 있으면 바로 사탕 드시게 한 뒤 119 연락하세요. 오늘은 외출 자제가 안전합니다.",
+                      "specific_drugs_to_note":  [
+                                                     "인슐린",
+                                                     "설포닐우레아(글리메피리드 등)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제, 실내 시원하게 유지",
+                                              "혈당 측정 평소의 2배 이상",
+                                              "저혈당 의심 시 즉시 사탕·주스 섭취 후 15분 뒤 재측정",
+                                              "의식 저하 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md",
+                                                   "quote":  "다약제 복용으로 저혈당 위험 증가"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md",
+                                                   "quote":  "피로감 등 모호한 증상 → 폭염 시 탈수 증상과 혼동 위험"
+                                               }
+                                           ],
+                      "rationale":  "폭염경보 수준에서는 당뇨 노인의 저혈당·탈수가 의식저하 등 응급상황으로 진행될 수 있으며 증상 인지가 늦는다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "E11",
+                      "disease_name":  "2형 당뇨병",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 한파 — 실내 운동과 혈당 변동 주의",
+                      "message_template":  "어머님 오늘 한파주의보예요. 추워서 안 움직이시면 혈당이 올라가고, 반대로 식욕이 늘어도 혈당 변동이 커져요. 집 안에서 가벼운 스트레칭이나 실내 걷기 하시도록 권해주시고, 혈당 측정 한 번 더 챙기시도록 안부 전화 부탁드려요.",
+                      "specific_drugs_to_note":  [
+
+                                                 ],
+                      "patient_actions":  [
+                                              "실내에서 가벼운 운동 (10~30분 스트레칭·걷기)",
+                                              "자가혈당 측정 빈도 유지",
+                                              "고른 영양 식사, 과식 주의",
+                                              "외출 시 손·발 보온 (당뇨 발 합병증 예방)"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\03_kdca_노인당뇨병.md",
+                                                   "quote":  "외출 감소 → 운동 부족 → 혈당 상승 / 추위로 식욕 증가 → 혈당 변동"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "가벼운 실내운동, 적절한 수분섭취와 고른 영양분을 갖춘 식사로 건강지키기"
+                                               }
+                                           ],
+                      "rationale":  "한파 시 활동량 감소와 식이 변화로 혈당 변동성이 커지며, 노인 당뇨 환자에서 관리 부담이 가중된다.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "E11",
+                      "disease_name":  "2형 당뇨병",
+                      "weather_alert":  "한파경보",
+                      "severity":  "경고",
+                      "title":  "어머님 한파경보 — 외출 자제·발 보온 필수",
+                      "message_template":  "어머님 오늘 한파경보예요. 당뇨 있으신 분은 추위에 손발 혈액순환이 더 안 좋아지고, 외출 시 낙상 위험도 커요. 오늘은 외출 자제 부탁드리고, 실내에서 가볍게라도 움직이시도록 권해주세요. 발이 차거나 색이 변하면 꼭 알려주시고, 미끄럼 방지 신발 없이는 절대 나가지 마세요.",
+                      "specific_drugs_to_note":  [
+
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제, 부득이한 경우 미끄럼 방지 신발 착용",
+                                              "발 보온 (양말 두 겹, 발 색·온도 점검)",
+                                              "실내에서 가벼운 운동 유지",
+                                              "행선지·외출 시간 가족에게 미리 알리기"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "절대 호주머니에 손을 넣지 말고 걷도록"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "야외 활동 전에 가족이나 친구에게 행선지를 알려야"
+                                               }
+                                           ],
+                      "rationale":  "한파경보 수준에서는 당뇨 노인의 말초순환 저하로 동상·당뇨발 위험과 낙상 위험이 동시에 증가한다.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J45",
+                      "disease_name":  "천식",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 천식, 더위에 발작 조심",
+                      "message_template":  "어머님, 오늘 폭염주의보예요. 더운 공기에 천식 발작이 올 수 있으니 휴대용 흡입기(증상완화제)는 꼭 가방이나 주머니에 챙기시라고 전화 드려보세요. 한낮 외출은 피하고, 실내는 시원하게 유지해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(SABA)",
+                                                     "흡입 스테로이드"
+                                                 ],
+                      "patient_actions":  [
+                                              "휴대용 흡입기 항상 소지",
+                                              "정오~17시 외출 자제",
+                                              "실내 온·습도 쾌적하게 유지",
+                                              "충분한 수분 섭취"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "실내가 시원하고 쾌적하게 유지되도록 온·습도 관리"
+                                               }
+                                           ],
+                      "rationale":  "고온·습한 공기와 대기 정체로 기도 과민성이 증가해 천식 악화 위험이 높아짐.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J45",
+                      "disease_name":  "천식",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 천식, 외출 자제 권고",
+                      "message_template":  "어머님, 오늘 폭염경보 발효예요. 고온에 천식 발작이 응급 상황으로 갈 수 있으니 가급적 외출하지 마시고, 흡입기(증상완화제) 위치 확인해드리세요. 숨이 차거나 쌕쌕거림이 심해지면 바로 전화 주시라고 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(SABA)",
+                                                     "흡입 스테로이드",
+                                                     "경구 스테로이드(악화 시)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 최소화",
+                                              "흡입기 머리맡·가방에 비치",
+                                              "에어컨 가동 및 환기",
+                                              "호흡곤란 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "65세 이상이 온열질환자의 30.5% 차지"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               }
+                                           ],
+                      "rationale":  "극심한 폭염은 기도 자극과 탈수로 점액 농축을 초래해 천식 중증 악화 및 응급실 방문 위험이 급증함.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J45",
+                      "disease_name":  "천식",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "경고",
+                      "title":  "어머님 천식, 찬 공기 주의",
+                      "message_template":  "어머님, 오늘 한파주의보예요. 찬 공기는 천식 발작의 큰 원인이라 외출하실 땐 꼭 마스크·목도리로 입과 코를 가려주시라고 말씀해주세요. 흡입기는 주머니에 챙기시고요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(SABA)",
+                                                     "흡입 스테로이드"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 시 마스크·목도리 착용",
+                                              "흡입기 휴대(체온 가까이 보관)",
+                                              "실내 습도 40-50% 유지",
+                                              "찬 공기 직접 호흡 피하기"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 습도: 40-50% (실내습도 유지로 호흡기질환 예방)"
+                                               }
+                                           ],
+                      "rationale":  "찬 공기는 기도 수축과 점막 자극을 유발해 천식 발작의 대표적 트리거임.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "J45",
+                      "disease_name":  "천식",
+                      "weather_alert":  "한파경보",
+                      "severity":  "위험",
+                      "title":  "어머님 천식, 외출 금지 권유",
+                      "message_template":  "어머님, 오늘 한파경보예요. 이런 날은 찬 공기 한 번에 발작이 올 수 있어요. 가급적 외출 안 하시는 게 좋고, 흡입기는 머리맡에 두시라고 해주세요. 숨이 가빠지면 바로 전화 주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(SABA)",
+                                                     "흡입 스테로이드",
+                                                     "경구 스테로이드(악화 시)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제",
+                                              "실내 18-20℃·습도 40-50% 유지",
+                                              "흡입기 머리맡 비치",
+                                              "호흡곤란 악화 시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 실내온도: 18-20℃ (취약계층은 더 높게 유지)"
+                                               }
+                                           ],
+                      "rationale":  "강한 한파에서는 기도 냉각·건조로 천식 중증 발작 위험이 최고조에 달함.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J44",
+                      "disease_name":  "만성폐쇄성폐질환(COPD)",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 COPD, 더위에 호흡 조심",
+                      "message_template":  "어머님, 오늘 더워요. 폐 기능이 떨어진 상태에선 더운 공기를 마시기만 해도 숨이 더 차질 수 있어요. 시원한 실내에 계시고, 흡입기(기관지확장제)는 곁에 두시라고 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(LABA/LAMA)",
+                                                     "흡입 스테로이드"
+                                                 ],
+                      "patient_actions":  [
+                                              "실내 에어컨 가동",
+                                              "한낮 외출 피하기",
+                                              "흡입기 항상 곁에",
+                                              "수분 자주 섭취"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "실내가 시원하고 쾌적하게 유지되도록 온·습도 관리"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "고온은 호흡수와 산소 요구량을 늘려 COPD 환자의 호흡곤란을 가중시킴.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J44",
+                      "disease_name":  "만성폐쇄성폐질환(COPD)",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 COPD, 응급 위험 단계",
+                      "message_template":  "어머님, 오늘 폭염경보예요. COPD 어르신은 이런 날 호흡부전 위험이 정말 커요. 절대 외출하지 마시고, 흡입기 위치 확인해드리세요. 입술이 파래지거나 숨이 더 차면 바로 119예요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(LABA/LAMA)",
+                                                     "흡입 스테로이드",
+                                                     "가정용 산소(처방 시)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "에어컨 가동 유지",
+                                              "흡입기 머리맡 비치",
+                                              "청색증·호흡곤란 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "65세 이상이 온열질환자의 30.5% 차지"
+                                               }
+                                           ],
+                      "rationale":  "극단적 폭염은 환기 요구 증가와 탈수로 COPD 급성 악화 및 호흡부전을 유발할 수 있음.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "J44",
+                      "disease_name":  "만성폐쇄성폐질환(COPD)",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "경고",
+                      "title":  "어머님 COPD, 찬 바람 차단",
+                      "message_template":  "어머님, 한파주의보예요. 찬 공기에 폐가 자극되면 기침·가래가 심해지고 악화될 수 있어요. 외출 줄이시고, 꼭 마스크·목도리로 입을 가리시라고 해주세요. 실내 습도도 챙겨주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(LABA/LAMA)",
+                                                     "흡입 스테로이드"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제",
+                                              "마스크·목도리로 호흡기 보호",
+                                              "실내 습도 40-50% 유지",
+                                              "독감·폐렴 예방접종 확인"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 습도: 40-50% (실내습도 유지로 호흡기질환 예방)"
+                                               }
+                                           ],
+                      "rationale":  "찬 공기는 기도 자극과 점액 분비 증가로 COPD 급성 악화의 흔한 원인이며 호흡기 감염 위험도 동반 상승.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "J44",
+                      "disease_name":  "만성폐쇄성폐질환(COPD)",
+                      "weather_alert":  "한파경보",
+                      "severity":  "위험",
+                      "title":  "어머님 COPD, 외출 절대 금지",
+                      "message_template":  "어머님, 오늘 한파경보입니다. COPD에 이런 추위는 정말 위험해요. 외출은 절대 피하시고, 실내는 18-20℃·습도 40-50%로 맞춰주세요. 숨 가쁨이 평소보다 심하면 바로 알려주시라고 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "흡입 기관지확장제(LABA/LAMA)",
+                                                     "흡입 스테로이드",
+                                                     "가정용 산소(처방 시)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "실내 18-20℃·습도 40-50% 유지",
+                                              "환기는 짧게 자주",
+                                              "호흡곤란 악화 시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 실내온도: 18-20℃ (취약계층은 더 높게 유지)"
+                                               }
+                                           ],
+                      "rationale":  "극심한 한파는 COPD 급성 악화·호흡부전·폐렴 합병 위험을 크게 증가시킴.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "I20",
+                      "disease_name":  "협심증",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 협심증, 더위에 무리 금지",
+                      "message_template":  "어머님, 오늘 폭염주의보예요. 더운 날엔 심장에 부담이 커져 가슴이 답답할 수 있어요. 한낮 활동 자제하시고, 니트로글리세린(혀밑약)은 손 닿는 곳에 꼭 두시라고 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "니트로글리세린 설하정",
+                                                     "베타차단제",
+                                                     "항혈소판제(아스피린)"
+                                                 ],
+                      "patient_actions":  [
+                                              "한낮 외출·운동 자제",
+                                              "니트로글리세린 휴대",
+                                              "수분 자주 섭취",
+                                              "흉통 시 즉시 휴식 및 설하정"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "고온은 심박수와 심근 산소 요구량을 증가시켜 협심증 발작의 유발 인자가 됨.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "I20",
+                      "disease_name":  "협심증",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 협심증, 발작 위험 최고",
+                      "message_template":  "어머님, 오늘 폭염경보예요. 협심증 어르신은 이런 날 발작 위험이 정말 커요. 외출 금지하시고, 니트로글리세린 위치 확인해드리세요. 가슴 통증 5분 이상이면 망설이지 말고 119예요.",
+                      "specific_drugs_to_note":  [
+                                                     "니트로글리세린 설하정",
+                                                     "베타차단제",
+                                                     "항혈소판제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "에어컨 가동 유지",
+                                              "니트로글리세린 항상 곁에",
+                                              "흉통 5분 지속 시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               }
+                                           ],
+                      "rationale":  "극단 폭염은 탈수·전해질 이상과 함께 심근허혈을 악화시켜 협심증·심근경색 발생 위험을 급증시킴.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "I20",
+                      "disease_name":  "협심증",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "경고",
+                      "title":  "어머님 협심증, 추위에 혈관 수축",
+                      "message_template":  "어머님, 오늘 한파주의보입니다. 추우면 혈관이 좁아져서 가슴 통증이 잘 와요. 아침 외출은 피하시고, 외출 시 모자·목도리 꼭 하세요. 니트로글리세린은 주머니에 챙겨주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "니트로글리세린 설하정",
+                                                     "베타차단제",
+                                                     "항혈소판제"
+                                                 ],
+                      "patient_actions":  [
+                                              "새벽·이른 아침 외출 자제",
+                                              "모자·목도리·장갑 착용",
+                                              "눈 치우기 등 힘쓰는 일 금지",
+                                              "니트로글리세린 휴대"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "고혈압·심뇌혈관질환자는 눈 치우기 등 활동 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               }
+                                           ],
+                      "rationale":  "한랭 자극은 말초·관상동맥 수축과 혈압 상승을 일으켜 협심증 발작 위험을 높임.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I20",
+                      "disease_name":  "협심증",
+                      "weather_alert":  "한파경보",
+                      "severity":  "위험",
+                      "title":  "어머님 협심증, 외출 절대 금지",
+                      "message_template":  "어머님, 오늘 한파경보입니다. 협심증에 이런 추위는 정말 위험해요. 외출은 절대 안 하시는 게 좋고, 실내도 따뜻하게 유지해주세요. 가슴 답답함 오면 바로 설하정 쓰시고 5분 안 가시면 119예요.",
+                      "specific_drugs_to_note":  [
+                                                     "니트로글리세린 설하정",
+                                                     "베타차단제",
+                                                     "항혈소판제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "실내외 온도차 줄이기",
+                                              "힘쓰는 활동 금지",
+                                              "흉통 5분 지속 시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "고혈압·심뇌혈관질환자는 눈 치우기 등 활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "극심한 한파는 관상동맥 수축과 혈압 급등으로 협심증의 급성 심근경색 진행 위험이 매우 높음.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I63",
+                      "disease_name":  "뇌경색증",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 뇌경색 과거력, 탈수 조심",
+                      "message_template":  "어머님, 오늘 폭염주의보예요. 더위에 땀이 많이 나면 피가 끈적해져 뇌경색 재발 위험이 올라가요. 물 자주 드시도록 권해드리고, 약(항혈소판/항응고제)은 평소처럼 거르지 않으셔야 해요.",
+                      "specific_drugs_to_note":  [
+                                                     "항혈소판제(아스피린·클로피도그렐)",
+                                                     "항응고제(와파린·DOAC)",
+                                                     "강압제"
+                                                 ],
+                      "patient_actions":  [
+                                              "수분 자주 섭취",
+                                              "한낮 외출 자제",
+                                              "처방약 거르지 않기",
+                                              "어지럼·발음 어눌 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "탈수는 혈액 점도를 높여 뇌경색 재발 위험을 증가시킴.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "I63",
+                      "disease_name":  "뇌경색증",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 뇌경색 재발 위험 최고",
+                      "message_template":  "어머님, 오늘 폭염경보입니다. 뇌경색 과거력 어르신은 이런 날 재발 위험이 큽니다. 외출 금지하시고 수분 자주 드세요. 한쪽 팔 힘 빠짐·발음 어눌·얼굴 비대칭 보이면 바로 119예요(FAST).",
+                      "specific_drugs_to_note":  [
+                                                     "항혈소판제",
+                                                     "항응고제",
+                                                     "강압제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "수분 자주 섭취",
+                                              "약 복용 시간 엄수",
+                                              "FAST 증상 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               }
+                                           ],
+                      "rationale":  "극단 폭염은 탈수·혈압 변동·혈전 형성 위험을 동시에 높여 뇌경색 재발 가능성을 가중시킴.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "I63",
+                      "disease_name":  "뇌경색증",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "경고",
+                      "title":  "어머님 뇌경색, 추위 혈압 급등 주의",
+                      "message_template":  "어머님, 오늘 한파주의보입니다. 추울 때 갑자기 혈압이 오르면 뇌혈관에 큰 부담이에요. 새벽 외출 피하시고, 화장실 가실 때도 옷 챙겨 입으시도록 해주세요. 약은 거르지 마시고요.",
+                      "specific_drugs_to_note":  [
+                                                     "항혈소판제",
+                                                     "항응고제",
+                                                     "강압제"
+                                                 ],
+                      "patient_actions":  [
+                                              "새벽 외출 자제",
+                                              "실내외 온도차 줄이기",
+                                              "외출 시 모자·목도리 착용",
+                                              "혈압 약 거르지 않기"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               }
+                                           ],
+                      "rationale":  "한랭 노출에 의한 혈압 급등과 혈관 수축은 뇌경색 재발의 주요 유발 인자임.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "I63",
+                      "disease_name":  "뇌경색증",
+                      "weather_alert":  "한파경보",
+                      "severity":  "위험",
+                      "title":  "어머님 뇌경색, 외출 절대 금지",
+                      "message_template":  "어머님, 오늘 한파경보입니다. 이런 날 뇌경색 재발이 가장 많이 나요. 외출은 절대 안 하시는 게 좋고, 실내도 18-20℃로 따뜻하게요. FAST 증상(얼굴·팔·말) 보이면 바로 119예요.",
+                      "specific_drugs_to_note":  [
+                                                     "항혈소판제",
+                                                     "항응고제",
+                                                     "강압제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "실내 18-20℃ 유지",
+                                              "약 복용 엄수",
+                                              "FAST 증상 시 즉시 119"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 실내온도: 18-20℃ (취약계층은 더 높게 유지)"
+                                               }
+                                           ],
+                      "rationale":  "극심한 한파는 급격한 혈압 상승과 혈관 수축으로 뇌경색의 가장 흔한 발생 시기와 일치함.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "N18",
+                      "disease_name":  "만성 신장병",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "경고",
+                      "title":  "어머님 신장, 더위에 수분 균형 주의",
+                      "message_template":  "어머님, 오늘 폭염주의보예요. 신장 기능이 약하신 분은 더위에 탈수도 위험하지만 물을 너무 많이 드셔도 부담돼요. 평소 의사가 정해준 수분량을 지키시고, 진통제(NSAID)는 임의로 드시지 않도록 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "이뇨제(탈수 주의)",
+                                                     "NSAID(신독성)",
+                                                     "ACEi/ARB"
+                                                 ],
+                      "patient_actions":  [
+                                              "주치의 권고 수분량 준수",
+                                              "한낮 외출 자제",
+                                              "임의 진통제 복용 금지",
+                                              "체중·소변량 변화 관찰"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md",
+                                                   "quote":  "이뇨제 복용 + 발한 → 탈수·저나트륨혈증"
+                                               }
+                                           ],
+                      "rationale":  "만성 신장병에서는 탈수 시 급성신손상이 쉽게 발생하며, NSAID·이뇨제는 신기능을 추가로 악화시킬 수 있음.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "N18",
+                      "disease_name":  "만성 신장병",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "위험",
+                      "title":  "어머님 신장, 급성 악화 위험",
+                      "message_template":  "어머님, 오늘 폭염경보입니다. 신장 약하신 분은 이런 날 탈수로 신장이 갑자기 나빠질 수 있어요. 외출 금지하시고, 정해주신 수분량 지키세요. 소변량이 평소보다 확 줄면 바로 알려주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "이뇨제",
+                                                     "NSAID",
+                                                     "ACEi/ARB",
+                                                     "메트포르민(탈수 시 주의)"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 금지",
+                                              "수분 섭취량 기록",
+                                              "소변량·체중 모니터링",
+                                              "소변 급감 시 진료"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\02_kdca_노인고혈압.md",
+                                                   "quote":  "이뇨제 복용 + 발한 → 탈수·저나트륨혈증"
+                                               }
+                                           ],
+                      "rationale":  "극단 폭염은 탈수와 신혈류 감소를 통해 급성신손상 위험을 크게 높임.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "N18",
+                      "disease_name":  "만성 신장병",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 신장, 추위에 혈압·감염 관리",
+                      "message_template":  "어머님, 오늘 한파주의보예요. 추우면 혈압이 올라가 신장에 부담이 돼요. 외출은 짧게, 따뜻하게 입으시고 감기 안 걸리시도록 손 자주 씻으시라고 해주세요. 처방약은 거르지 마세요.",
+                      "specific_drugs_to_note":  [
+                                                     "강압제",
+                                                     "이뇨제",
+                                                     "ACEi/ARB"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 시 보온 철저",
+                                              "감기·요로감염 예방(손 씻기)",
+                                              "처방약 거르지 않기",
+                                              "혈압 자가 측정"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "모자, 장갑, 마스크 및 목도리를 착용"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               }
+                                           ],
+                      "rationale":  "한랭에 의한 혈압 상승과 감염 증가는 만성 신장병의 진행을 가속할 수 있음.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "N18",
+                      "disease_name":  "만성 신장병",
+                      "weather_alert":  "한파경보",
+                      "severity":  "경고",
+                      "title":  "어머님 신장, 외출 자제·약 점검",
+                      "message_template":  "어머님, 오늘 한파경보입니다. 외출은 가급적 안 하시고 실내 따뜻하게 유지해주세요. 감기약·진통제는 신장에 부담 줄 수 있으니 약사·의사와 상의 없이 드시지 않도록 챙겨주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "NSAID(감기약 포함)",
+                                                     "이뇨제",
+                                                     "강압제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제",
+                                              "실내 18-20℃ 유지",
+                                              "OTC 진통·감기약 임의 복용 금지",
+                                              "발열·소변 변화 시 진료"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "적정 실내온도: 18-20℃ (취약계층은 더 높게 유지)"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "노약자와 심뇌혈관질환자는 불필요한 외출 자제"
+                                               }
+                                           ],
+                      "rationale":  "한파 시 감염·혈압 급등과 NSAID 남용은 신기능 급격 악화의 흔한 원인임.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "M19",
+                      "disease_name":  "기타 관절증(골관절염)",
+                      "weather_alert":  "폭염주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 관절, 진통제 신장 부담 조심",
+                      "message_template":  "어머님, 오늘 폭염주의보예요. 더운 날 진통제(NSAID)를 자주 드시면 신장·위장에 부담이 커져요. 통증 있으시면 임의로 늘리지 마시고 자녀에게 먼저 말씀해달라고 해주세요. 물도 자주 드시고요.",
+                      "specific_drugs_to_note":  [
+                                                     "NSAID(이부프로펜·나프록센)",
+                                                     "아세트아미노펜",
+                                                     "위장보호제"
+                                                 ],
+                      "patient_actions":  [
+                                              "NSAID 임의 증량 금지",
+                                              "수분 충분히 섭취",
+                                              "한낮 외출 자제",
+                                              "통증 변화 자녀에게 공유"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "만성질환(고혈압, 당뇨 등)이 있는 경우 무리한 야외활동 자제"
+                                               }
+                                           ],
+                      "rationale":  "폭염에 의한 탈수와 NSAID 병용은 노인에서 급성신손상·위장출혈 위험을 크게 높임.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "M19",
+                      "disease_name":  "기타 관절증(골관절염)",
+                      "weather_alert":  "폭염경보",
+                      "severity":  "경고",
+                      "title":  "어머님 관절, 더위·진통제 이중 위험",
+                      "message_template":  "어머님, 오늘 폭염경보입니다. 더위에 진통제까지 자주 드시면 신장이 갑자기 나빠질 수 있어요. 외출 줄이시고, 통증 심하시면 임의로 약 늘리지 마시고 전화 주세요. 시원한 데서 가볍게 스트레칭만 해주세요.",
+                      "specific_drugs_to_note":  [
+                                                     "NSAID",
+                                                     "아세트아미노펜",
+                                                     "위장보호제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 자제",
+                                              "NSAID 자가 증량 금지",
+                                              "수분 자주 섭취",
+                                              "실내 가벼운 스트레칭"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\04_mohw_어르신_오늘건강.md",
+                                                   "quote":  "2024년 한 해 동안 온열질환자의 30.4%가 65세 이상 노인"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\heat_wave\\01_e_health_general.md",
+                                                   "quote":  "65세 이상이 온열질환자의 30.5% 차지"
+                                               }
+                                           ],
+                      "rationale":  "극심한 폭염 + NSAID는 노인에서 신기능 악화와 위장 출혈을 동시에 유발할 수 있음.",
+                      "general_knowledge_used":  true
+                  },
+                  {
+                      "disease_code":  "M19",
+                      "disease_name":  "기타 관절증(골관절염)",
+                      "weather_alert":  "한파주의보",
+                      "severity":  "주의",
+                      "title":  "어머님 관절, 추위에 통증·낙상 조심",
+                      "message_template":  "어머님, 한파주의보예요. 추우면 관절이 굳어 통증도 심해지고 미끄러져 다치기 쉬워요. 외출 시 미끄럼방지 신발 신으시고, 호주머니에 손 넣지 마시라고 꼭 말씀해주세요. 실내에선 따뜻한 찜질·가벼운 스트레칭이 도움돼요.",
+                      "specific_drugs_to_note":  [
+                                                     "NSAID",
+                                                     "아세트아미노펜",
+                                                     "국소 진통제(파스)"
+                                                 ],
+                      "patient_actions":  [
+                                              "미끄럼 방지 신발 착용",
+                                              "손 호주머니에 넣지 않기",
+                                              "관절 보온 및 스트레칭",
+                                              "외출은 천천히 잔걸음"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "절대 호주머니에 손을 넣지 말고 걷도록"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "무리한 운동은 삼가고, 야외활동을 해야 한다면 천천히 움직여야 합니다"
+                                               }
+                                           ],
+                      "rationale":  "한랭은 관절 강직과 통증을 악화시키고, 평형감각 저하로 낙상 위험을 동반 상승시킴.",
+                      "general_knowledge_used":  false
+                  },
+                  {
+                      "disease_code":  "M19",
+                      "disease_name":  "기타 관절증(골관절염)",
+                      "weather_alert":  "한파경보",
+                      "severity":  "경고",
+                      "title":  "어머님 관절, 낙상 위험 최고",
+                      "message_template":  "어머님, 오늘 한파경보입니다. 빙판·강추위에 미끄러지면 큰일 나요. 가급적 외출 안 하시고, 꼭 나가셔야 하면 미끄럼방지 신발에 천천히 잔걸음으로 걸으시도록 해주세요. 관절 통증엔 따뜻한 찜질이 좋아요.",
+                      "specific_drugs_to_note":  [
+                                                     "NSAID",
+                                                     "아세트아미노펜",
+                                                     "국소 진통제"
+                                                 ],
+                      "patient_actions":  [
+                                              "외출 최소화",
+                                              "미끄럼 방지 신발·지팡이 사용",
+                                              "잔걸음·호주머니 손 금지",
+                                              "온찜질·실내 스트레칭"
+                                          ],
+                      "source_citations":  [
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "절대 호주머니에 손을 넣지 말고 걷도록"
+                                               },
+                                               {
+                                                   "file":  "C:\\Users\\tiilk\\Desktop\\test2\\seed\\cold_wave\\01_kdca_general_winter.md",
+                                                   "quote":  "무리한 운동은 삼가고, 야외활동을 해야 한다면 천천히 움직여야 합니다"
+                                               }
+                                           ],
+                      "rationale":  "극한 한파에서는 관절 통증과 강직이 심해지고 빙판으로 인한 노인 낙상·골절 위험이 매우 높음.",
+                      "general_knowledge_used":  false
+                  }
+              ]
+}

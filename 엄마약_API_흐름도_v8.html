@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엄마약 — 기능별 API 데이터 흐름도 v8 (백엔드 슬라이스 + 4-schema 통합판)</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --line:#2b3140;
+    --txt:#e8eaf0; --muted:#9aa3b2; --dim:#6b7280;
+    --input:#94a3b8; --api:#3b82f6; --file:#a855f7; --out:#22c55e;
+    --result:#14b8a6; --warn:#f59e0b; --bad:#ef4444; --ai:#ec4899;
+    --new:#06b6d4; --build:#f97316;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+    background:var(--bg); color:var(--txt); line-height:1.6;
+    padding:32px 16px 80px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  .vbadge{display:inline-block;background:linear-gradient(135deg,#06b6d4,#3b82f6);
+          color:#fff;font-weight:800;font-size:11px;padding:3px 10px;border-radius:6px;
+          letter-spacing:1px;margin-left:8px;vertical-align:middle}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+  .sub{color:var(--muted);margin:6px 0 22px;font-size:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+  .lg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);
+      background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  .changelog{background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(59,130,246,.08));
+             border:1px solid rgba(6,182,212,.4);border-radius:14px;padding:18px 20px;margin-bottom:30px}
+  .changelog h3{font-size:14px;color:#67e8f9;margin-bottom:10px;letter-spacing:.5px}
+  .changelog ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .changelog li{font-size:13.5px;display:flex;gap:8px;align-items:flex-start}
+  .changelog li::before{content:"●";color:var(--new);margin-top:1px}
+
+  .metrics{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.4);
+           border-radius:14px;padding:16px 18px;margin-bottom:30px}
+  .metrics h3{font-size:14px;color:#4ade80;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+  .mcell{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;
+         padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+  .mcell.new{border-color:rgba(6,182,212,.5);background:rgba(6,182,212,.05)}
+  .mlab{font-size:11px;color:var(--dim);letter-spacing:.3px}
+  .mlab.new{color:#67e8f9}
+  .mval{font-size:18px;font-weight:800;color:#86efac}
+  .msub{font-size:11px;color:var(--muted)}
+
+  .verify{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(20,184,166,.06));
+          border:1px solid rgba(34,197,94,.4);border-radius:14px;padding:18px 20px;margin-bottom:30px}
+  .verify h3{font-size:14px;color:#4ade80;margin-bottom:12px;letter-spacing:.5px}
+  .vsteps{display:flex;gap:8px;flex-wrap:wrap}
+  .vstep{flex:1;min-width:130px;background:rgba(0,0,0,.25);border:1px solid rgba(34,197,94,.3);
+         border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+  .vstep .vidx{font-size:10px;color:var(--dim);letter-spacing:.5px}
+  .vstep .vname{font-size:13px;font-weight:700;color:#fff}
+  .vstep .vres{font-size:11px;color:#86efac}
+
+  .disease-grid{margin-top:14px;padding:14px;background:rgba(0,0,0,.25);
+                border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+  .disease-grid h5{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+  table.dg{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
+  table.dg th, table.dg td{padding:7px 8px;text-align:center;border:1px solid var(--line)}
+  table.dg th{background:#0f1115;font-size:10.5px;color:var(--dim);letter-spacing:.3px;text-transform:uppercase}
+  table.dg td.disease{text-align:left;color:#fff;font-weight:600;background:#141821}
+  table.dg .sev-주의{background:rgba(245,158,11,.13);color:#fbbf24;font-weight:700}
+  table.dg .sev-경고{background:rgba(249,115,22,.16);color:#fb923c;font-weight:700}
+  table.dg .sev-위험{background:rgba(239,68,68,.18);color:#fca5a5;font-weight:700}
+  table.dg .gk{font-size:9px;opacity:.7;margin-left:2px}
+
+  .feature{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+           padding:22px;margin-bottom:26px;position:relative}
+  .feature.upgraded{border-color:rgba(6,182,212,.5);
+                    box-shadow:0 0 0 1px rgba(6,182,212,.15)}
+  .upgrade-tag{position:absolute;top:-10px;right:18px;background:var(--new);color:#0f1115;
+               font-size:10px;font-weight:900;padding:3px 10px;border-radius:6px;letter-spacing:1.2px}
+  .fhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .fnum{width:30px;height:30px;border-radius:8px;background:var(--panel2);
+        display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .ftitle{font-size:18px;font-weight:700}
+  .badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px}
+  .b-ok{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.4)}
+  .b-new{background:rgba(6,182,212,.18);color:#67e8f9;border:1px solid rgba(6,182,212,.4)}
+  .fdesc{color:var(--muted);font-size:13px;margin:6px 0 18px}
+
+  .pipe{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .node{border-radius:12px;padding:13px 15px;border:1px solid var(--line);
+        background:var(--panel2);position:relative}
+  .node.highlight{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 1px rgba(6,182,212,.15)}
+  .node.build{border-color:rgba(249,115,22,.5);box-shadow:0 0 0 1px rgba(249,115,22,.15)}
+  .ntag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.5px;
+        padding:2px 8px;border-radius:6px;margin-bottom:8px;text-transform:uppercase}
+  .t-in{background:rgba(148,163,184,.18);color:#cbd5e1}
+  .t-api{background:rgba(59,130,246,.18);color:#93c5fd}
+  .t-file{background:rgba(168,85,247,.18);color:#d8b4fe}
+  .t-out{background:rgba(34,197,94,.16);color:#86efac}
+  .t-res{background:rgba(20,184,166,.18);color:#5eead4}
+  .t-ai{background:rgba(236,72,153,.18);color:#f9a8d4}
+  .t-judge{background:rgba(245,158,11,.18);color:#fbbf24}
+  .t-build{background:rgba(249,115,22,.18);color:#fdba74}
+  .t-cache{background:rgba(168,85,247,.12);color:#c4b5fd}
+  .napi{font-size:14px;font-weight:700;margin-bottom:2px}
+  .nop{font-size:12px;color:var(--muted);font-family:"SF Mono",ui-monospace,Menlo,monospace}
+  .fields{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+  .frow{display:flex;gap:8px;font-size:12.5px;align-items:flex-start}
+  .flab{flex:0 0 52px;color:var(--dim);font-weight:700;font-size:11px;padding-top:1px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{background:#11141b;border:1px solid var(--line);border-radius:6px;
+        padding:2px 8px;font-size:11.5px;font-family:"SF Mono",ui-monospace,Menlo,monospace}
+  .chip b{color:#fff}
+  .chip.k{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.08)}
+  .chip.n{border-color:rgba(6,182,212,.5);background:rgba(6,182,212,.08);color:#a5f3fc}
+  .chip.b{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.08);color:#fdba74}
+
+  .conn{display:flex;flex-direction:column;align-items:center;padding:7px 0}
+  .conn .ln{width:2px;height:14px;background:var(--line)}
+  .conn .cv{color:var(--muted);font-size:14px;line-height:1}
+  .conn .cl{font-size:11px;color:var(--api);background:rgba(59,130,246,.1);
+            border:1px solid rgba(59,130,246,.3);padding:2px 9px;border-radius:999px;margin:3px 0}
+  .conn .cl.ai{color:var(--ai);background:rgba(236,72,153,.1);border-color:rgba(236,72,153,.3)}
+  .conn .cl.build{color:var(--build);background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.3)}
+
+  .branch{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0}
+  .branch .col{display:flex;flex-direction:column;gap:8px}
+  .branch h4{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;
+             margin-bottom:4px;text-align:center}
+  .b-label-1{color:#fbbf24}
+  .b-label-2{color:#f9a8d4}
+  .merge{display:flex;align-items:center;gap:8px;padding:6px 0;color:var(--muted);font-size:11px;justify-content:center}
+  .merge::before, .merge::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .phase-divider{margin:20px 0;padding:8px 14px;background:rgba(249,115,22,.06);
+                 border:1px dashed rgba(249,115,22,.4);border-radius:10px;
+                 font-size:12px;font-weight:700;color:var(--build);letter-spacing:.5px;text-transform:uppercase}
+  .phase-divider.run{background:rgba(6,182,212,.06);border-color:rgba(6,182,212,.4);color:#67e8f9}
+
+  .pill-demo{margin-top:14px;padding:14px;background:rgba(0,0,0,.25);
+             border:1px solid var(--line);border-radius:10px;display:flex;gap:18px;flex-wrap:wrap}
+  .pill-demo .pcell{flex:1;min-width:220px}
+  .pill-demo h5{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .pill-demo img{width:120px;height:auto;border-radius:8px;background:#fff;padding:6px;
+                 border:1px solid var(--line);display:block;margin-bottom:8px}
+  .pill-demo .pinfo{font-size:12px;color:var(--txt);line-height:1.7}
+  .pill-demo .pinfo b{color:#fbbf24}
+
+  .msg-preview{margin-top:14px;padding:14px;background:rgba(0,0,0,.25);
+               border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:14px}
+  .msg-preview h5{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+  .msg-card{background:#11141b;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .msg-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .msg-sev{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.5px}
+  .sev-주의{background:rgba(245,158,11,.18);color:#fbbf24}
+  .sev-경고{background:rgba(249,115,22,.18);color:#fb923c}
+  .sev-위험{background:rgba(239,68,68,.2);color:#fca5a5}
+  .msg-title{font-size:13px;font-weight:700;color:#fff}
+  .msg-body{font-size:13px;color:var(--txt);line-height:1.7;padding:8px 10px;
+            background:rgba(6,182,212,.06);border-left:3px solid var(--new);border-radius:6px;margin:4px 0}
+  .msg-meta{font-size:11px;color:var(--dim);font-style:italic;margin-top:6px}
+
+  .threshold{margin-top:14px;padding:14px;background:rgba(0,0,0,.25);
+             border:1px solid var(--line);border-radius:10px}
+  .threshold h5{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  table.th{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.th th, table.th td{padding:6px 9px;text-align:left;border-bottom:1px solid var(--line)}
+  table.th th{font-size:10.5px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+  table.th .code{font-family:"SF Mono",ui-monospace,Menlo,monospace;color:#a5f3fc}
+  table.th .yes{color:#4ade80;font-weight:700}
+
+  .live-data{margin-top:14px;padding:14px;background:rgba(34,197,94,.06);
+             border:1px solid rgba(34,197,94,.3);border-radius:10px}
+  .live-data h5{font-size:12px;color:#4ade80;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  .live-row{font-size:13px;color:var(--txt);line-height:1.8;font-family:"SF Mono",ui-monospace,Menlo,monospace}
+  .live-row .dt{color:var(--muted)}
+  .live-row .val{color:#fbbf24;font-weight:700}
+  .live-row .vd{color:#86efac;margin-left:8px}
+
+  .warn{margin-top:16px;border:1px solid rgba(245,158,11,.4);
+        background:rgba(245,158,11,.07);border-radius:12px;padding:14px 16px}
+  .warn h4{font-size:13px;color:#fbbf24;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .warn ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .warn li{font-size:13px;display:flex;gap:9px;align-items:flex-start}
+  .need{color:#5eead4;font-weight:700}
+  .ok{color:#4ade80;font-weight:700}
+  .warn .lbl{flex:0 0 56px;font-size:11px;font-weight:800;color:var(--dim);padding-top:2px}
+
+  .note{font-size:12px;color:var(--dim);margin-top:10px;font-style:italic}
+
+  .joinkey{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+           padding:18px;margin-bottom:30px}
+  .joinkey h3{font-size:15px;margin-bottom:12px;color:#fbbf24}
+  table.jk{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  table.jk th, table.jk td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  table.jk th{font-size:11px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+  .row-ok{background:rgba(34,197,94,.05)}
+  .yes{color:#4ade80;font-weight:700}
+
+  .endbox{background:var(--panel);border:1px dashed var(--line);border-radius:14px;
+          padding:18px;margin-top:30px;font-size:13px;color:var(--muted)}
+
+  /* ★ v8 신규 스타일 ============================================= */
+  .v8section{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+             padding:22px 22px;margin-bottom:26px;position:relative}
+  .v8section.new{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 1px rgba(6,182,212,.15)}
+  .v8section h2{font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px;
+                display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .v8section h2 .v8tag{background:var(--new);color:#0f1115;font-size:10px;font-weight:900;
+                       padding:3px 9px;border-radius:6px;letter-spacing:1px}
+  .v8section .v8sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+
+  /* 4-schema diagram */
+  .schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+  .schema-card{background:rgba(0,0,0,.3);border-radius:12px;padding:14px;border-left:4px solid}
+  .schema-card.ref{border-left-color:#a855f7;background:linear-gradient(135deg,rgba(168,85,247,.07),rgba(0,0,0,.3))}
+  .schema-card.app{border-left-color:#3b82f6;background:linear-gradient(135deg,rgba(59,130,246,.07),rgba(0,0,0,.3))}
+  .schema-card.derived{border-left-color:#ec4899;background:linear-gradient(135deg,rgba(236,72,153,.07),rgba(0,0,0,.3))}
+  .schema-card.logs{border-left-color:#f59e0b;background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(0,0,0,.3))}
+  .schema-card h4{font-size:13px;font-weight:800;margin-bottom:4px;letter-spacing:.3px}
+  .schema-card.ref h4{color:#d8b4fe}
+  .schema-card.app h4{color:#93c5fd}
+  .schema-card.derived h4{color:#f9a8d4}
+  .schema-card.logs h4{color:#fbbf24}
+  .schema-card .schema-desc{font-size:11px;color:var(--dim);margin-bottom:9px;line-height:1.5}
+  .schema-card ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+  .schema-card li{font-size:12px;color:var(--txt);font-family:"SF Mono",ui-monospace,Menlo,monospace;
+                  padding:2px 0;display:flex;align-items:baseline;gap:6px}
+  .schema-card li::before{content:"●";font-size:7px;color:var(--dim)}
+
+  /* Slices dependency graph */
+  .dep-flow{margin-top:14px;padding:16px;background:rgba(0,0,0,.3);border-radius:12px;
+            overflow-x:auto;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;
+            line-height:1.7;white-space:pre;color:var(--txt)}
+  .dep-flow .s0{color:#fbbf24}.dep-flow .s1{color:#93c5fd}.dep-flow .s2{color:#86efac}
+  .dep-flow .s3{color:#f9a8d4}.dep-flow .s4{color:#67e8f9}.dep-flow .s5{color:#d8b4fe}
+  .dep-flow .s6{color:#5eead4}.dep-flow .s7{color:#fb923c}.dep-flow .s8{color:#fca5a5}
+  .dep-flow .arrow{color:var(--dim)}
+
+  .slice-list{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px}
+  .slice-item{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;
+              padding:10px 12px;display:flex;align-items:center;gap:10px}
+  .slice-num{flex-shrink:0;width:32px;height:32px;background:var(--panel2);border-radius:8px;
+             display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff}
+  .slice-num.s0{background:#854d0e;color:#fef3c7}
+  .slice-num.s1{background:#1e3a8a;color:#dbeafe}
+  .slice-num.s2{background:#14532d;color:#bbf7d0}
+  .slice-num.s3{background:#831843;color:#fce7f3}
+  .slice-num.s4{background:#155e75;color:#cffafe}
+  .slice-num.s5{background:#581c87;color:#f3e8ff}
+  .slice-num.s6{background:#134e4a;color:#ccfbf1}
+  .slice-num.s7{background:#7c2d12;color:#fed7aa}
+  .slice-num.s8{background:#7f1d1d;color:#fecaca}
+  .slice-body{flex:1;min-width:0}
+  .slice-title{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:2px}
+  .slice-deps{font-size:10.5px;color:var(--dim);font-family:"SF Mono",ui-monospace,Menlo,monospace}
+
+  /* DDL minimap */
+  .ddl-map{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+  .ddl-cell{padding:8px 10px;border-radius:8px;font-family:"SF Mono",ui-monospace,Menlo,monospace;
+            font-size:11px;display:flex;flex-direction:column;gap:2px;border:1px solid transparent}
+  .ddl-cell.ref{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:#e9d5ff}
+  .ddl-cell.app{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#dbeafe}
+  .ddl-cell.derived{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:#fbcfe8}
+  .ddl-cell.logs{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:#fde68a}
+  .ddl-tab{font-weight:700;font-size:11.5px}
+  .ddl-from{font-size:9.5px;opacity:.7}
+
+  /* Blocker matrix */
+  .blocker-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+  .blocker-tbl th{background:#0f1115;font-size:10.5px;color:var(--dim);
+                  letter-spacing:.3px;text-transform:uppercase;padding:8px 10px;text-align:left;border:1px solid var(--line)}
+  .blocker-tbl td{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  .blocker-tbl td.bnum{font-weight:800;color:#fbbf24;text-align:center;width:36px}
+  .blocker-tbl td.bnum.v21{color:#67e8f9}
+  .blocker-tbl td.bissue{color:var(--txt)}
+  .blocker-tbl td.bfix{color:#86efac;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11.5px}
+  .blocker-tbl td.bslice{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#a5f3fc}
+  .blocker-tbl tr.v21-row{background:rgba(6,182,212,.05)}
+  .blocker-section-row td{background:#0f1115;color:#67e8f9;font-weight:700;font-size:11px;
+                          letter-spacing:.5px;text-transform:uppercase;padding:6px 10px;text-align:center}
+
+  /* LLM badge */
+  .llm-badge{display:inline-flex;align-items:center;gap:6px;
+             background:linear-gradient(135deg,rgba(236,72,153,.18),rgba(168,85,247,.15));
+             border:1px solid rgba(236,72,153,.4);border-radius:999px;
+             padding:3px 10px;font-size:10.5px;color:#fbcfe8;font-weight:700;letter-spacing:.3px}
+  .llm-badge::before{content:"✨";font-size:11px}
+  .llm-note{font-size:10.5px;color:var(--dim);font-style:italic;margin-top:4px}
+
+  /* Emergency card v8 enhanced flow */
+  .em-sort{margin-top:14px;padding:14px;background:rgba(239,68,68,.06);
+           border:1px solid rgba(239,68,68,.3);border-radius:10px}
+  .em-sort h5{font-size:12px;color:#fca5a5;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+  .em-priority{display:flex;flex-direction:column;gap:8px}
+  .em-pri{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;
+          background:rgba(0,0,0,.3);border-radius:8px;border-left:3px solid}
+  .em-pri.p1{border-left-color:#ef4444}
+  .em-pri.p2{border-left-color:#f59e0b}
+  .em-pri.p3{border-left-color:#3b82f6}
+  .em-pri .ppill{flex-shrink:0;font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px}
+  .em-pri.p1 .ppill{background:rgba(239,68,68,.2);color:#fca5a5}
+  .em-pri.p2 .ppill{background:rgba(245,158,11,.2);color:#fbbf24}
+  .em-pri.p3 .ppill{background:rgba(59,130,246,.2);color:#93c5fd}
+  .em-pri .ptxt{font-size:12.5px;color:var(--txt);line-height:1.6}
+  .em-pri .ptxt code{color:#a5f3fc;font-size:11.5px}
+
+  /* Weather ETL v8 enhanced */
+  .etl-lock{margin-top:14px;padding:14px;background:rgba(20,184,166,.06);
+            border:1px solid rgba(20,184,166,.3);border-radius:10px}
+  .etl-lock h5{font-size:12px;color:#5eead4;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+  .lock-row{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;padding:8px 0;
+            border-bottom:1px dashed var(--line);font-size:12px;align-items:center}
+  .lock-row:last-child{border-bottom:none}
+  .lock-row .lk-label{color:#67e8f9;font-weight:700;font-size:11.5px}
+  .lock-row .lk-key{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#fbbf24}
+  .lock-row .lk-purpose{color:var(--txt)}
+
+  .etl-status{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+  .est-pill{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;
+            padding:4px 10px;border-radius:6px;border:1px solid}
+  .est-pill.sent{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:#86efac}
+  .est-pill.failed{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.4);color:#fca5a5}
+  .est-pill.simulated{background:rgba(148,163,184,.1);border-color:rgba(148,163,184,.4);color:#cbd5e1}
+  .est-pill.fatigue{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4);color:#fbbf24}
+  .est-pill.review{background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.4);color:#67e8f9}
+  .est-pill.dup{background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.4);color:#d8b4fe}
+
+  /* TOC / 한눈에 보기 */
+  .toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:26px}
+  .toc h3{font-size:14px;color:#67e8f9;margin-bottom:10px;letter-spacing:.3px}
+  .toc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px}
+  .toc-row{font-size:12px;color:var(--muted);padding:4px 8px;border-radius:6px;
+           display:flex;gap:8px;align-items:baseline}
+  .toc-row b{color:#fff;flex-shrink:0}
+  .toc-row.new{background:rgba(6,182,212,.06);color:#67e8f9}
+  .toc-row.new b{color:#a5f3fc}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>엄마약 — 기능별 API 데이터 흐름도 <span class="vbadge">V8</span></h1>
+  <p class="sub">2026-05-20 통합판 · API 흐름 + Phase 1 룰셋(32룰) + <b style="color:#67e8f9">백엔드 9 슬라이스 + 4-schema 24 테이블 + 블로커 17건 해결</b></p>
+
+  <div class="changelog">
+    <h3>🔄 V7 → V8 변경 요약 (백엔드 설계 완전 통합)</h3>
+    <ul>
+      <li><b>4-schema 다이어그램 추가</b>: <code>ref/app/derived/logs</code> 24개 테이블이 어디 속하고 왜 분리했는지 — 운영 권한·백업·파티셔닝 전략 한눈에.</li>
+      <li><b>9개 슬라이스 의존성 그래프</b>: 00 인프라 → 01·02·03 → 04 → 05 → 06 → 07 → 08 빌드 순서 시각화.</li>
+      <li><b>DDL 미니맵</b>: 24개 테이블이 어느 슬라이스에서 정의되고 어느 스키마에 속하는지 색상 코딩.</li>
+      <li><b>블로커 해결 매트릭스</b>: v1 검수 12건 + v2.1 cross-ref 검수 5건 = <b style="color:#86efac">총 17건 모두 해결</b>.</li>
+      <li><b>응급카드 흐름 강화</b>: 알레르기 → 항응고제 → 약장의 TOP 우선순위 정렬 명시.</li>
+      <li><b>날씨 ETL 흐름 강화</b>: Redis 락 2단(잡·부모) + delivery_status 6종 enum.</li>
+      <li><b>LLM 메타데이터 배지</b>: Gemini 2.5 Flash Lite (구현 시 변경 가능) 명시.</li>
+    </ul>
+  </div>
+
+  <div class="toc">
+    <h3>📑 한눈에 보기</h3>
+    <div class="toc-grid">
+      <div class="toc-row"><b>1.</b> 6겹 검증 사이클</div>
+      <div class="toc-row"><b>2.</b> 통합 검증 메트릭</div>
+      <div class="toc-row"><b>3.</b> 조인키 전략</div>
+      <div class="toc-row new"><b>4. ★</b> 4-schema 다이어그램 (24 테이블)</div>
+      <div class="toc-row new"><b>5. ★</b> 9개 슬라이스 의존성 그래프</div>
+      <div class="toc-row new"><b>6. ★</b> DDL 미니맵</div>
+      <div class="toc-row new"><b>7. ★</b> 블로커 해결 매트릭스 (17건)</div>
+      <div class="toc-row"><b>8.</b> 기능 2 — 약 안전 (2겹)</div>
+      <div class="toc-row"><b>9.</b> 기능 1 — 알약 외형</div>
+      <div class="toc-row"><b>10.</b> 기능 3 — 질병코드 → 피해야 할 약</div>
+      <div class="toc-row"><b>11.</b> 기능 5 — 날씨 × 질병 (32룰)</div>
+      <div class="toc-row new"><b>12. ★</b> 응급카드 흐름 강화</div>
+      <div class="toc-row new"><b>13. ★</b> 날씨 ETL 락 + delivery_status</div>
+    </div>
+  </div>
+
+  <div class="verify">
+    <h3>🏁 6겹 검증 사이클 모두 통과 (실측)</h3>
+    <div class="vsteps">
+      <div class="vstep"><span class="vidx">STEP 1</span><span class="vname">시드 수집</span><span class="vres">✅ 6 파일</span></div>
+      <div class="vstep"><span class="vidx">STEP 2</span><span class="vname">v0.1 큐레이션</span><span class="vres">✅ 8 룰</span></div>
+      <div class="vstep"><span class="vidx">STEP 3</span><span class="vname">환각 검증</span><span class="vres">✅ 59/59 byte</span></div>
+      <div class="vstep"><span class="vidx">STEP 4</span><span class="vname">기상청 API</span><span class="vres">✅ 실호출</span></div>
+      <div class="vstep"><span class="vidx">STEP 5</span><span class="vname">자체 판정 로직</span><span class="vres">✅ TMX·TMN</span></div>
+      <div class="vstep" style="border-color:rgba(6,182,212,.5);background:rgba(6,182,212,.05)"><span class="vidx" style="color:#67e8f9">STEP 6</span><span class="vname">Phase 1 확장</span><span class="vres">✅ 32 룰 / 8 질병</span></div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <h3>✅ 통합 검증 메트릭 (실측)</h3>
+    <div class="mgrid">
+      <div class="mcell"><span class="mlab">약물 안전 NB 추출</span><span class="mval">100%</span><span class="msub">amlodipine·warfarin 환각 0</span></div>
+      <div class="mcell"><span class="mlab">2겹 안전망 재현율</span><span class="mval">7 / 7</span><span class="msub">두 약 ground-truth</span></div>
+      <div class="mcell"><span class="mlab">낱알식별 등재 규모</span><span class="mval">25,537</span><span class="msub">의약품 외형·이미지</span></div>
+      <div class="mcell"><span class="mlab">알약 사진 URL</span><span class="mval">✅</span><span class="msub">JPEG 외부 직접 사용</span></div>
+      <div class="mcell new"><span class="mlab new">★ 날씨 룰셋 v0.2</span><span class="mval">32 / 32</span><span class="msub">8 질병 × 4 단계</span></div>
+      <div class="mcell new"><span class="mlab new">★ 룰셋 인용 환각</span><span class="mval">0 / 59</span><span class="msub">byte-for-byte 100%</span></div>
+      <div class="mcell"><span class="mlab">기상청 API 실호출</span><span class="mval">✅</span><span class="msub">대구 응답 ~0.3초</span></div>
+      <div class="mcell new"><span class="mlab new">★ 의료진 검수 큐</span><span class="mval">17 / 32</span><span class="msub">general_knowledge 우선</span></div>
+    </div>
+  </div>
+
+  <div class="joinkey">
+    <h3>🔑 조인키 전략 (식약처 + HIRA + 기상청 통합)</h3>
+    <table class="jk">
+      <thead><tr><th>대상 데이터</th><th>1순위 키</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr class="row-ok">
+          <td>식약처 허가정보 ↔ 낱알식별</td>
+          <td><span class="chip k"><b>ITEM_SEQ</b></span></td>
+          <td>같은 식약처 소관, 동일 키 ★ <span class="yes">실증</span></td>
+        </tr>
+        <tr class="row-ok">
+          <td>식약처 ↔ HIRA DUR (처방약)</td>
+          <td><span class="chip k"><b>EDI_CODE</b></span></td>
+          <td>보험청구코드 → HIRA 약가</td>
+        </tr>
+        <tr class="row-ok">
+          <td>식약처 ↔ HIRA DUR (일반약)</td>
+          <td><span class="chip n"><b>ATC_CODE</b></span> + 함량/제형</td>
+          <td>EDI 빈값 → ATC fallback</td>
+        </tr>
+        <tr class="row-ok">
+          <td>DUR 매칭 (이름 기반)</td>
+          <td>성분 영문명 (정규화·부분일치)</td>
+          <td>코드 직접 매칭 불가 → 이름</td>
+        </tr>
+        <tr class="row-ok">
+          <td>기상청 좌표</td>
+          <td><span class="chip n">nx, ny</span> (격자)</td>
+          <td>★ 첨부 xlsx로 행정구역→격자 변환. 대구 ≈ 89,90 / 서울 ≈ 60,127</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span class="lg"><i class="dot" style="background:var(--input)"></i>입력값</span>
+    <span class="lg"><i class="dot" style="background:var(--api)"></i>API 호출</span>
+    <span class="lg"><i class="dot" style="background:var(--file)"></i>데이터 파일</span>
+    <span class="lg"><i class="dot" style="background:var(--ai)"></i>LLM 추출</span>
+    <span class="lg"><i class="dot" style="background:var(--build)"></i>빌드 타임 작업</span>
+    <span class="lg"><i class="dot" style="background:var(--out)"></i>출력값</span>
+    <span class="lg"><i class="dot" style="background:var(--result)"></i>최종 결과</span>
+    <span class="lg"><i class="dot" style="background:var(--warn)"></i>통합 판정</span>
+  </div>
+
+  <!-- ============ ★ v8 신규 ① 4-schema 다이어그램 ============ -->
+  <section class="v8section new">
+    <h2>🗄️ 4-schema 아키텍처 (24 테이블) <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">PostgreSQL 14+ · 4개 스키마로 권한·백업·파티셔닝 정책을 분리. 외부 마스터 데이터(공개 OK) ↔ 환자 데이터(RLS 보호) ↔ AI 추출 캐시(재생성 가능) ↔ 시계열 로그(파티션) 명확히 격리.</p>
+    <div class="schema-grid">
+      <div class="schema-card ref">
+        <h4>ref · Reference Data</h4>
+        <div class="schema-desc">외부 마스터 (식약처·HIRA·KMA). 정적 / 큰 용량 / 공개 가능. 백업 우선순위 낮음 — 재적재 가능.</div>
+        <ul>
+          <li>drugs_master  <span style="opacity:.5">(slice 01)</span></li>
+          <li>pill_visuals  <span style="opacity:.5">(01)</span></li>
+          <li>dur_combo_contraindications  <span style="opacity:.5">(02)</span></li>
+          <li>dur_elderly_caution  <span style="opacity:.5">(02)</span></li>
+          <li>dur_elderly_nsaid_caution  <span style="opacity:.5">(02)</span></li>
+          <li>dur_age_contraindication  <span style="opacity:.5">(02/05)</span></li>
+          <li>dur_pregnancy_contraindication  <span style="opacity:.5">(02/05)</span></li>
+          <li>disease_master  <span style="opacity:.5">(05)</span></li>
+          <li>weather_rules  <span style="opacity:.5">(06)</span></li>
+          <li>region_grid  <span style="opacity:.5">(06)</span></li>
+        </ul>
+      </div>
+      <div class="schema-card app">
+        <h4>app · Application Data</h4>
+        <div class="schema-desc">사용자 생성 데이터. RLS(Row-Level Security) 필수. 백업 최우선 — 환자 PII. pgcrypto 컬럼 암호화.</div>
+        <ul>
+          <li>patient_profiles  <span style="opacity:.5">(04)</span></li>
+          <li>patient_medications  <span style="opacity:.5">(04)</span></li>
+          <li>patient_allergies  <span style="opacity:.5">(04)</span></li>
+          <li>patient_conditions  <span style="opacity:.5">(05)</span></li>
+          <li>device_tokens  <span style="opacity:.5">(04, 암호화)</span></li>
+          <li>parent_hospitals  <span style="opacity:.5">(08)</span></li>
+          <li>hospital_emergency_info  <span style="opacity:.5">(08)</span></li>
+          <li>parent_pharmacies  <span style="opacity:.5">(08)</span></li>
+          <li>emergency_cards  <span style="opacity:.5">(08)</span></li>
+        </ul>
+      </div>
+      <div class="schema-card derived">
+        <h4>derived · LLM Extractions</h4>
+        <div class="schema-desc">AI 추출 결과 캐시. 재현 가능 (LLM 재호출). 환각 검증 통과 데이터만. 모델·프롬프트 버전 추적.</div>
+        <ul>
+          <li>nb_extractions  <span style="opacity:.5">(03)</span></li>
+          <li>nb_interactions  <span style="opacity:.5">(03, drug_drug + patient_class)</span></li>
+        </ul>
+      </div>
+      <div class="schema-card logs">
+        <h4>logs · Time-series Logs</h4>
+        <div class="schema-desc">시계열 로그. 월별 RANGE 파티셔닝. 90일 후 콜드 스토리지. 감사·메트릭·재현.</div>
+        <ul>
+          <li>safety_check_log  <span style="opacity:.5">(04)</span></li>
+          <li>weather_observations_daily  <span style="opacity:.5">(07, 월 파티션)</span></li>
+          <li>advisory_push_log  <span style="opacity:.5">(07, 월 파티션)</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ★ v8 신규 ② 9개 슬라이스 의존성 그래프 ============ -->
+  <section class="v8section new">
+    <h2>🧱 9개 슬라이스 빌드 순서 + 의존성 <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">Tracer-bullet 수직 슬라이싱. 각 슬라이스는 독립 배포 가능 · 의존성은 위에서 아래로만 흐름.</p>
+
+    <div class="dep-flow">          <span class="s0">┌─ 00 인프라 (4-schema, LLM 클라이언트, 환각 검증기)</span>
+          <span class="arrow">│</span>
+          <span class="arrow">├─ </span><span class="s1">01 약 마스터 + 알약 이미지 (식약처 15095677·15057639)</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s2">02 DUR 병용금기 (HIRA 11983 837k행 + 정확매칭)</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s3">03 NB 추출 (LLM 2겹 안전망) </span><span class="arrow">← 01·02</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s4">04 부모 약장 + allergies + device_tokens </span><span class="arrow">← 01·02·03</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s5">05 질병·환자분류 금기 (정규화 conditions) </span><span class="arrow">← 02·03·04</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s6">06 날씨 룰셋(32) + 격자좌표 + 룩업 </span><span class="arrow">← 04·05</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">├─ </span><span class="s7">07 ETL + 자체 판정 + 푸시 (Redis 락) </span><span class="arrow">← 04·05·06</span>
+          <span class="arrow">│      │</span>
+          <span class="arrow">└─ </span><span class="s8">08 응급카드 (HIRA 11999·12101·12100) </span><span class="arrow">← 04·05</span>
+    </div>
+
+    <div class="slice-list">
+      <div class="slice-item"><div class="slice-num s0">00</div><div class="slice-body"><div class="slice-title">4-schema 인프라 + 공유 유틸</div><div class="slice-deps">deps: 없음</div></div></div>
+      <div class="slice-item"><div class="slice-num s1">01</div><div class="slice-body"><div class="slice-title">약 마스터 + 알약 외형</div><div class="slice-deps">deps: 00</div></div></div>
+      <div class="slice-item"><div class="slice-num s2">02</div><div class="slice-body"><div class="slice-title">DUR 병용금기 (837k행)</div><div class="slice-deps">deps: 00, 01</div></div></div>
+      <div class="slice-item"><div class="slice-num s3">03</div><div class="slice-body"><div class="slice-title">NB 추출 (LLM 2겹 안전망)</div><div class="slice-deps">deps: 00, 01, 02</div></div></div>
+      <div class="slice-item"><div class="slice-num s4">04</div><div class="slice-body"><div class="slice-title">부모 약장 관리 + 알레르기 + 디바이스 토큰</div><div class="slice-deps">deps: 00, 01, 02, 03</div></div></div>
+      <div class="slice-item"><div class="slice-num s5">05</div><div class="slice-body"><div class="slice-title">질병·환자분류 금기 + KCD</div><div class="slice-deps">deps: 00, 02, 03, 04</div></div></div>
+      <div class="slice-item"><div class="slice-num s6">06</div><div class="slice-body"><div class="slice-title">날씨 룰셋(32) + 격자좌표 + 룩업</div><div class="slice-deps">deps: 00, 04, 05</div></div></div>
+      <div class="slice-item"><div class="slice-num s7">07</div><div class="slice-body"><div class="slice-title">매일 ETL + 자체 판정 + 자녀 푸시</div><div class="slice-deps">deps: 00, 04, 05, 06</div></div></div>
+      <div class="slice-item"><div class="slice-num s8">08</div><div class="slice-body"><div class="slice-title">응급카드 (allergies + 항응고제 정렬)</div><div class="slice-deps">deps: 00, 04, 05</div></div></div>
+    </div>
+  </section>
+
+  <!-- ============ ★ v8 신규 ③ DDL 미니맵 ============ -->
+  <section class="v8section new">
+    <h2>🗺️ DDL 미니맵 — 24개 테이블 색상 코딩 <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">각 테이블이 어느 슬라이스에서 <b>최초 정의</b>되고 어느 스키마에 속하는지 한눈에. 색상 = 스키마.</p>
+    <div class="ddl-map">
+      <div class="ddl-cell ref"><span class="ddl-tab">drugs_master</span><span class="ddl-from">slice 01 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">pill_visuals</span><span class="ddl-from">slice 01 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">dur_combo_contraindications</span><span class="ddl-from">slice 02 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">dur_elderly_caution</span><span class="ddl-from">slice 02 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">dur_elderly_nsaid_caution</span><span class="ddl-from">slice 02 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">dur_age_contraindication</span><span class="ddl-from">slice 02 DDL/05 ETL</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">dur_pregnancy_contra...</span><span class="ddl-from">slice 02 DDL/05 ETL</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">disease_master</span><span class="ddl-from">slice 05 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">weather_rules</span><span class="ddl-from">slice 06 · ref</span></div>
+      <div class="ddl-cell ref"><span class="ddl-tab">region_grid</span><span class="ddl-from">slice 06 · ref</span></div>
+
+      <div class="ddl-cell app"><span class="ddl-tab">patient_profiles</span><span class="ddl-from">slice 04 · app</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">patient_medications</span><span class="ddl-from">slice 04 · app</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">patient_allergies</span><span class="ddl-from">slice 04 · app ★ v2</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">patient_conditions</span><span class="ddl-from">slice 05 · app (정규화)</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">device_tokens</span><span class="ddl-from">slice 04 · app (암호화)</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">parent_hospitals</span><span class="ddl-from">slice 08 · app</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">hospital_emergency_info</span><span class="ddl-from">slice 08 · app</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">parent_pharmacies</span><span class="ddl-from">slice 08 · app</span></div>
+      <div class="ddl-cell app"><span class="ddl-tab">emergency_cards</span><span class="ddl-from">slice 08 · app (QR)</span></div>
+
+      <div class="ddl-cell derived"><span class="ddl-tab">nb_extractions</span><span class="ddl-from">slice 03 · derived</span></div>
+      <div class="ddl-cell derived"><span class="ddl-tab">nb_interactions</span><span class="ddl-from">slice 03 · derived</span></div>
+
+      <div class="ddl-cell logs"><span class="ddl-tab">safety_check_log</span><span class="ddl-from">slice 04 · logs</span></div>
+      <div class="ddl-cell logs"><span class="ddl-tab">weather_observations_daily</span><span class="ddl-from">slice 07 · logs (월 파티션)</span></div>
+      <div class="ddl-cell logs"><span class="ddl-tab">advisory_push_log</span><span class="ddl-from">slice 07 · logs (월 파티션)</span></div>
+    </div>
+  </section>
+
+  <!-- ============ ★ v8 신규 ④ 블로커 해결 매트릭스 ============ -->
+  <section class="v8section new">
+    <h2>🛡️ 블로커 해결 매트릭스 — 12 + 5 = 17건 <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">v1 검수에서 발견한 12 블로커 + v2.1 cross-ref 검수에서 발견한 5 minor 이슈 — <b style="color:#86efac">전부 해결 완료</b>.</p>
+
+    <table class="blocker-tbl">
+      <thead>
+        <tr><th style="width:36px">#</th><th>이슈</th><th>해결 방식</th><th style="width:80px">슬라이스</th></tr>
+      </thead>
+      <tbody>
+        <tr class="blocker-section-row"><td colspan="4">▼ v1 → v2 블로커 (12건) ▼</td></tr>
+        <tr><td class="bnum">1</td><td class="bissue">patient.conditions 저장 형식 모호 (JSONB vs 테이블)</td><td class="bfix">정규화 테이블 확정 + JSONB 옵션 제거</td><td class="bslice">05</td></tr>
+        <tr><td class="bnum">2</td><td class="bissue">device_token 테이블 없음 → 푸시 불가</td><td class="bfix">device_tokens 신규 + pgp_sym_encrypt</td><td class="bslice">04</td></tr>
+        <tr><td class="bnum">3</td><td class="bissue">patient_allergies 없음 → 응급카드 정렬 불가</td><td class="bfix">app.patient_allergies 신규</td><td class="bslice">04 / 08</td></tr>
+        <tr><td class="bnum">4</td><td class="bissue">DUR LIKE '%X%' 검색 → 인덱스 무력</td><td class="bfix">ingredient_norm = :a 정확매칭 + 복합 인덱스</td><td class="bslice">02</td></tr>
+        <tr><td class="bnum">5</td><td class="bissue">README 의존성 그래프 부정확</td><td class="bfix">README + 9 슬라이스 헤더 동기화</td><td class="bslice">README</td></tr>
+        <tr><td class="bnum">6</td><td class="bissue">slice 04 deps에 03 누락</td><td class="bfix">deps 명시: 00, 01, 02, 03</td><td class="bslice">04</td></tr>
+        <tr><td class="bnum">7</td><td class="bissue">nb_interactions ALTER 분산 (entry_type 후추가)</td><td class="bfix">초기 DDL에 entry_type 통합</td><td class="bslice">03</td></tr>
+        <tr><td class="bnum">8</td><td class="bissue">WeatherAdvisory에 rule_id 없음 → 07 dedup 불가</td><td class="bfix">dataclass에 rule_id 필드 추가</td><td class="bslice">06</td></tr>
+        <tr><td class="bnum">9</td><td class="bissue">slice 04 BLOCK 응답 HTTP 코드 모호</td><td class="bfix">HTTP 409 Conflict + SafetyBlockError</td><td class="bslice">04</td></tr>
+        <tr><td class="bnum">10</td><td class="bissue">slice 08 항응고제 정렬 동작 불가</td><td class="bfix">ATC B01A* prefix + critical_drugs 별도 섹션</td><td class="bslice">08</td></tr>
+        <tr><td class="bnum">11</td><td class="bissue">PRD에 Step 6 응급카드 부재</td><td class="bfix">PRD v6 Step 6 복원 + 모듈 ⑨ 신설</td><td class="bslice">PRD</td></tr>
+        <tr><td class="bnum">12</td><td class="bissue">환경변수 이름 불명확</td><td class="bfix">.env.example 7개 + 사용처 매트릭스</td><td class="bslice">00</td></tr>
+
+        <tr class="blocker-section-row"><td colspan="4">▼ v2 → v2.1 cross-ref 검수 (5건) ▼</td></tr>
+        <tr class="v21-row"><td class="bnum v21">13</td><td class="bissue">delivery_status enum이 skipped 사유 미구분</td><td class="bfix">'skipped_review' 신규 enum 추가</td><td class="bslice">07</td></tr>
+        <tr class="v21-row"><td class="bnum v21">14</td><td class="bissue">calc_age() schema prefix 누락</td><td class="bfix">app.calc_age() 일관 적용</td><td class="bslice">08</td></tr>
+        <tr class="v21-row"><td class="bnum v21">15</td><td class="bissue">동일-일 푸시 중복방지가 앱 레벨만</td><td class="bfix">Redis 락 2단 (잡 30분 + 부모 5분)</td><td class="bslice">07</td></tr>
+        <tr class="v21-row"><td class="bnum v21">16</td><td class="bissue">address_dong 저장하지만 region_grid 매칭 미사용</td><td class="bfix">동 우선 매칭 + 시·구 fallback</td><td class="bslice">06</td></tr>
+        <tr class="v21-row"><td class="bnum v21">17</td><td class="bissue">환경변수 섹션 "없음" 모순 표기</td><td class="bfix">선언 7개 vs 사용처 매트릭스</td><td class="bslice">00</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= 기능 2 (FULL — API 흐름 복원) ================= -->
+  <section class="feature upgraded">
+    <span class="upgrade-tag">V2 검증 완료</span>
+    <div class="fhead">
+      <span class="fnum">2</span>
+      <span class="ftitle">같이 먹으면 안 되는 약 삽입 거절</span>
+      <span class="badge b-ok">✅ 2겹 안전망</span>
+    </div>
+    <p class="fdesc">DUR(빠른 1차 룰베이스) + 식약처 NB_DOC_DATA AI 추출(깊은 2차). 두 약 검증으로 재현율 100%·환각 0건 확인.</p>
+
+    <div class="pipe">
+      <div class="node">
+        <span class="ntag t-in">입력값</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip"><b>itmNm</b> = "엘트라셋정"</span>
+          <span class="chip">또는 처방전 OCR 결과</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-api">API 호출 ①</span>
+        <div class="napi">15095677 · 식약처 의약품 제품 허가정보 목록</div>
+        <div class="nop">endpoint: DrugPrdtPrmsnInfoService07 / op: getDrugPrdtPrmsnInq07</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips">
+            <span class="chip">item_name</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips">
+            <span class="chip k"><b>ITEM_SEQ</b> 품목기준코드 ★</span>
+            <span class="chip">ITEM_NAME</span>
+            <span class="chip n"><b>EDI_CODE</b> 처방약만</span>
+            <span class="chip n"><b>ATC_CODE</b></span>
+            <span class="chip">BIG_PRDT_IMG_URL</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">ITEM_SEQ로 ②·③ 동시 호출</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="branch">
+        <div class="col">
+          <h4 class="b-label-1">1차 — 빠른 룰베이스 (즉시)</h4>
+          <div class="node">
+            <span class="ntag t-api">API 호출 ②</span>
+            <div class="napi">15095677 · 허가 상세정보</div>
+            <div class="nop">op: getDrugPrdtPrmsnDtlInq06</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">출력</span><span class="chips">
+                <span class="chip k">MAIN_INGR_ENG</span>
+                <span class="chip">EDI_CODE</span></span></div>
+            </div>
+          </div>
+          <div class="conn"><div class="cv">▼</div></div>
+          <div class="node">
+            <span class="ntag t-in">정규화</span>
+            <div class="fields"><div class="frow"><span class="chips">
+              <span class="chip">소문자 + 염표기 제거</span>
+              <span class="chip">"Amlodipine Besylate" → <b>amlodipine</b></span></span></div></div>
+          </div>
+          <div class="conn"><div class="cv">▼</div></div>
+          <div class="node">
+            <span class="ntag t-file">DUR 매칭</span>
+            <div class="napi">11983 · 병용금기 CSV (837,837행)</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">조회</span><span class="chips">
+                <span class="chip">성분명A·B에 부분 일치</span></span></div>
+              <div class="frow"><span class="flab">출력</span><span class="chips">
+                <span class="chip">상세정보(사유)</span>
+                <span class="chip">고시일자</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <h4 class="b-label-2">2차 — LLM 깊은 검증 (캐시 우선)</h4>
+          <div class="node">
+            <span class="ntag t-api">API 호출 ③</span>
+            <div class="napi">15095677 · 허가 상세정보</div>
+            <div class="nop">op: getDrugPrdtPrmsnDtlInq06</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">출력</span><span class="chips">
+                <span class="chip n"><b>NB_DOC_DATA</b> 사용상의주의사항 원문 ★</span>
+                <span class="chip">EE_DOC_DATA</span>
+                <span class="chip">UD_DOC_DATA</span></span></div>
+            </div>
+          </div>
+          <div class="conn"><div class="cv">▼</div></div>
+          <div class="node">
+            <span class="ntag t-ai">LLM 구조화 추출</span>
+            <div class="napi">LLM 호출 <span class="llm-badge">Gemini 2.5 Flash Lite</span></div>
+            <div class="llm-note">구현 단계에서 변경 가능 (Anthropic Claude / OpenAI GPT). 인터페이스만 안정.</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">입력</span><span class="chips">
+                <span class="chip">NB_DOC_DATA 정제 평문</span></span></div>
+              <div class="frow"><span class="flab">출력</span><span class="chips">
+                <span class="chip n">JSON: interactions[]</span>
+                <span class="chip">partner_drug, risk_level, source_quote</span></span></div>
+            </div>
+          </div>
+          <div class="conn"><div class="cv">▼</div></div>
+          <div class="node">
+            <span class="ntag t-ai">환각 검증</span>
+            <div class="fields"><div class="frow"><span class="chips">
+              <span class="chip">source_quote ⊂ 원문 (byte-for-byte)</span>
+              <span class="chip" style="color:#4ade80">실측: 0건 환각</span></span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="merge">▼ 두 결과를 SafetyJudge에서 통합 ▼</div>
+
+      <div class="node highlight">
+        <span class="ntag t-judge">통합 판정 (SafetyJudge)</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">DUR 병용금기 ∪ NB "동시투여피해야함" → <b style="color:#fca5a5">BLOCK</b></span>
+          <span class="chip">DUR 노인주의 ∪ NB "권장하지않음" → <b style="color:#fbbf24">WARN</b></span>
+          <span class="chip">NB "주의" → <b style="color:#a5f3fc">INFO</b></span>
+        </span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-res">최종 결과</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">🚫 "함께 복용 불가" + 사유 + <b>식약처 허가사항 원문 인용</b></span>
+        </span></div></div>
+      </div>
+    </div>
+
+    <p class="note">한국 DUR 단독 약점(amlodipine+simvastatin·warfarin+aspirin 등 누락)을 NB 2차에서 회수. amlodipine 노바스크의 경우 NB에 simvastatin·itraconazole·ketoconazole·cyclosporine·clarithromycin·dantrolene·자몽 등 풍부히 명시됨을 확인.</p>
+  </section>
+
+  <!-- ================= 기능 1 (FULL — API 흐름 복원) ================= -->
+  <section class="feature upgraded">
+    <span class="upgrade-tag">V3 검증 완료</span>
+    <div class="fhead">
+      <span class="fnum">1</span>
+      <span class="ftitle">알약 사진 + 외형 식별 안내</span>
+      <span class="badge b-ok">✅ 데이터 완전 해결</span>
+    </div>
+    <p class="fdesc">식약처 낱알식별 정보 API(15057639)로 실제 알약 사진·각인·크기·모양·색까지 전체 외형 정보 확보.</p>
+
+    <div class="pipe">
+      <div class="node">
+        <span class="ntag t-in">입력값</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip k"><b>ITEM_SEQ</b> (기능 2 ①의 출력 재사용)</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">ITEM_SEQ로 식약처 두 API 공통 키 활용</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node highlight">
+        <span class="ntag t-api">API 호출</span>
+        <div class="napi">15057639 · 식약처 의약품 낱알식별 정보</div>
+        <div class="nop">endpoint: MdcinGrnIdntfcInfoService03 / op: getMdcinGrnIdntfcInfoList03</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips">
+            <span class="chip">item_name (운영 권장 — 빠름)</span>
+            <span class="chip">또는 item_seq 직접</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips">
+            <span class="chip k"><b>ITEM_IMAGE</b> ★ 실 JPEG URL</span>
+            <span class="chip">DRUG_SHAPE 모양</span>
+            <span class="chip">COLOR_CLASS1/2 색</span>
+            <span class="chip">PRINT_FRONT/BACK 각인</span>
+            <span class="chip">LINE_FRONT/BACK 분할선</span>
+            <span class="chip">LENG_LONG·LENG_SHORT·THICK 크기(mm)</span>
+            <span class="chip">FORM_CODE_NAME 제형</span>
+            <span class="chip">CHART 성상 텍스트</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-cache">캐시 저장</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">ITEM_SEQ + CHANGE_DATE 키로 영구 캐시</span>
+          <span class="chip">이미지 URL은 식약처 CDN 직접 사용</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-res">최종 결과</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">💊 실제 알약 JPEG + "흰색 장방형 17.6×7.1mm 앞면 TYLENOL 뒷면 500"</span>
+          <span class="chip">자녀가 어머니 약장 알약과 시각 대조</span></span></div></div>
+      </div>
+
+      <div class="pill-demo">
+        <div class="pcell">
+          <h5>실측 — 타이레놀정500밀리그람</h5>
+          <img src="https://nedrug.mfds.go.kr/pbp/cmn/itemImageDownload/1OKRXo9l4D5" alt="타이레놀500">
+          <div class="pinfo">
+            ITEM_SEQ: <b>202106092</b><br>
+            장방형 · 하양 · 앞: <b>TYLENOL</b> · 뒤: <b>500</b><br>
+            17.6 × 7.1 × 5.7 mm
+          </div>
+        </div>
+        <div class="pcell">
+          <h5>실측 — 노바스크정5밀리그람</h5>
+          <img src="https://nedrug.mfds.go.kr/pbp/cmn/itemImageDownload/1Pm1vy6QK2x" alt="노바스크5">
+          <div class="pinfo">
+            ITEM_SEQ: <b>200610660</b> · EDI: <b>073400360</b><br>
+            팔각형 · 하양 · 앞: <b>VLE</b> · 뒤: <b>NV(분할)5</b><br>
+            8.6 × 6.1 × 3.1 mm
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">운영 권장: item_name 검색이 item_seq 직접 검색보다 훨씬 빠름 (실측 0.5초 vs 60초+). 결과에서 ITEM_SEQ로 필터링 후 캐시. 알람·푸시 인프라(FCM/APNs)는 자체 구축.</p>
+  </section>
+
+  <!-- ================= 기능 3 (FULL — API 흐름 복원) ================= -->
+  <section class="feature upgraded">
+    <span class="upgrade-tag">V2 검증 완료</span>
+    <div class="fhead">
+      <span class="fnum">3</span>
+      <span class="ftitle">질병코드 입력 → 피해야 할 약</span>
+      <span class="badge b-new">🔄 NB 환자분류 추출로 보강</span>
+    </div>
+    <p class="fdesc">기존 12904 + 11984 + DUR 외에, 식약처 NB_DOC_DATA에 "이 환자 분류엔 금기" 자유 문장이 실재함을 확인. LLM이 그것까지 추출해 부모님 기저질환과 교차 검증.</p>
+
+    <div class="pipe">
+      <div class="node">
+        <span class="ntag t-in">입력값</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip"><b>searchText</b>="E11" (당뇨)</span>
+          <span class="chip">+ 부모님 기저질환 목록</span>
+          <span class="chip">+ 부모님 약장 (기능 2 거친 ITEM_SEQ 집합)</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-api">API 호출</span>
+        <div class="napi">12904 · HIRA 질병정보서비스</div>
+        <div class="nop">op: getDissNameCodeList1</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips">
+            <span class="chip">searchText</span><span class="chip">diseaseType=SICK_CD</span>
+            <span class="chip">sickType</span><span class="chip">medTp</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips">
+            <span class="chip k"><b>sickCd</b> 상병코드</span><span class="chip">sickNm 상병명</span>
+            <span class="chip">sickEngNm 영문명</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">sickCd + 나이(72) + 약장</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="branch">
+        <div class="col">
+          <h4 class="b-label-1">1차 — 룰베이스</h4>
+          <div class="node">
+            <span class="ntag t-file">데이터 대조</span>
+            <div class="napi">11984 상병마스터 + 11983 DUR</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">11984</span><span class="chips">
+                <span class="chip">상한/하한연령</span><span class="chip">성별구분</span></span></div>
+              <div class="frow"><span class="flab">노인주의</span><span class="chips">
+                <span class="chip">성분코드</span><span class="chip">약품상세정보</span></span></div>
+              <div class="frow"><span class="flab">연령금기</span><span class="chips">
+                <span class="chip">특정연령·연령처리조건</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <h4 class="b-label-2">2차 — NB 환자분류 추출</h4>
+          <div class="node">
+            <span class="ntag t-ai">LLM 환자분류 추출 <span class="llm-badge">Gemini 2.5 Flash Lite</span></span>
+            <div class="napi">부모 약장 각 ITEM_SEQ의 NB_DOC_DATA</div>
+            <div class="llm-note">모델 추상화 — 환경변수로 교체 가능</div>
+            <div class="fields">
+              <div class="frow"><span class="flab">추출 예</span><span class="chips">
+                <span class="chip">"심한 간장애 환자"</span>
+                <span class="chip">"소화성궤양 환자"</span>
+                <span class="chip">"심장기능저하 환자"</span></span></div>
+              <div class="frow"><span class="flab">매핑</span><span class="chips">
+                <span class="chip">환자 분류 문장 → KCD 카테고리</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="merge">▼ 부모님 기저질환과 교차 검증 ▼</div>
+
+      <div class="node highlight">
+        <span class="ntag t-judge">통합 판정</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">부모님이 K25(위궤양) + 약 NB에 "소화성궤양 환자 금기" → <b style="color:#fca5a5">WARN</b></span>
+          <span class="chip">부모님 72세 + DUR 노인주의 약 → <b style="color:#fbbf24">WARN</b></span>
+        </span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-res">최종 결과</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">⚠️ "어머님의 ○○ 병력에 이 약이 위험합니다" + 식약처 원문 인용</span>
+        </span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 기능 5 (FULL — V6 그리드 + 메시지 카드) ================= -->
+  <section class="feature upgraded">
+    <span class="upgrade-tag">UPGRADED v6 — 32룰</span>
+    <div class="fhead">
+      <span class="fnum">5</span>
+      <span class="ftitle">질병 + 날씨 상황별 주의 메시지</span>
+      <span class="badge b-ok">✅ Phase 1 완료 (32 룰)</span>
+    </div>
+    <p class="fdesc">8질병 × 4단계 = 32 룰 완성. 부모 페르소나 핵심 만성질환 100% 커버. 59개 인용 모두 시드 byte-for-byte 일치, 환각 0건.</p>
+
+    <div class="disease-grid">
+      <h5>📊 8질병 × 4단계 강도 매트릭스 (v0.2)</h5>
+      <table class="dg">
+        <thead>
+          <tr>
+            <th>질병 (KCD)</th>
+            <th>폭염주의보<br>(TMX≥33℃)</th>
+            <th>폭염경보<br>(TMX≥35℃)</th>
+            <th>한파주의보<br>(TMN≤-12℃)</th>
+            <th>한파경보<br>(TMN≤-15℃)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="disease">I10 본태성 고혈압</td><td class="sev-주의">주의</td><td class="sev-위험">위험</td><td class="sev-주의">주의</td><td class="sev-위험">위험</td></tr>
+          <tr><td class="disease">E11 2형 당뇨병</td><td class="sev-주의">주의</td><td class="sev-위험">위험</td><td class="sev-주의">주의</td><td class="sev-경고">경고<span class="gk">⚠</span></td></tr>
+          <tr><td class="disease">J45 천식 ★</td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-위험">위험<span class="gk">⚠</span></td><td class="sev-경고">경고</td><td class="sev-위험">위험<span class="gk">⚠</span></td></tr>
+          <tr><td class="disease">J44 COPD ★</td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-위험">위험<span class="gk">⚠</span></td><td class="sev-경고">경고</td><td class="sev-위험">위험<span class="gk">⚠</span></td></tr>
+          <tr><td class="disease">I20 협심증 ★</td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-위험">위험<span class="gk">⚠</span></td><td class="sev-경고">경고</td><td class="sev-위험">위험</td></tr>
+          <tr><td class="disease">I63 뇌경색증 ★</td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-위험">위험<span class="gk">⚠</span></td><td class="sev-경고">경고</td><td class="sev-위험">위험</td></tr>
+          <tr><td class="disease">N18 만성 신장병 ★</td><td class="sev-경고">경고<span class="gk">⚠</span></td><td class="sev-위험">위험<span class="gk">⚠</span></td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-경고">경고<span class="gk">⚠</span></td></tr>
+          <tr><td class="disease">M19 골관절염 ★</td><td class="sev-주의">주의<span class="gk">⚠</span></td><td class="sev-경고">경고<span class="gk">⚠</span></td><td class="sev-주의">주의</td><td class="sev-경고">경고</td></tr>
+        </tbody>
+      </table>
+      <p class="note">★ = v0.2 신규 추가. <span class="gk">⚠</span> = <code>general_knowledge_used: true</code> (의료진 검수 우선, 17건).</p>
+    </div>
+
+    <div class="phase-divider">⚙️ Phase A — 빌드 타임 (완료 ✅)</div>
+
+    <div class="pipe">
+      <div class="node build">
+        <span class="ntag t-build">시드 데이터 수집 ✅</span>
+        <div class="fields">
+          <div class="frow"><span class="flab">폭염</span><span class="chips">
+            <span class="chip b">e보건소 일반</span><span class="chip b">KDCA 노인고혈압</span>
+            <span class="chip b">KDCA 노인당뇨병</span><span class="chip b">보건복지부 어르신</span></span></div>
+          <div class="frow"><span class="flab">한파</span><span class="chips">
+            <span class="chip b">KDCA 겨울철 건강수칙</span><span class="chip b">KDCA 카드뉴스</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node build">
+        <span class="ntag t-ai">⑧ RuleSetCurator (LLM) ✅</span>
+        <div class="fields">
+          <div class="frow"><span class="flab">v0.1</span><span class="chips">
+            <span class="chip b">8룰 (I10·E11 × 4)</span></span></div>
+          <div class="frow"><span class="flab">v0.2 신규</span><span class="chips">
+            <span class="chip b">+24룰 (J45·J44·I20·I63·N18·M19 × 4) = 총 32룰</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node build">
+        <span class="ntag t-ai">⑤ HallucinationVerifier (재사용) ✅</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">59개 인용 byte-for-byte 매칭</span>
+          <span class="chip" style="color:#4ade80">환각 0건 (v0.1 + v0.2 합산)</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node build">
+        <span class="ntag t-build">정적 룰셋 ✅ + 검수 큐 분류</span>
+        <div class="fields">
+          <div class="frow"><span class="flab">파일</span><span class="chips">
+            <span class="chip">weather_rules_v0.2.json — 32 entries, 76 KB</span></span></div>
+          <div class="frow"><span class="flab">검수</span><span class="chips">
+            <span class="chip" style="color:#fbbf24">⚠ general_knowledge_used 17건 → 우선 큐</span>
+            <span class="chip">시드 근거 15건 → 표준 검수</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-divider run">🔁 Phase B — 운영 타임 (검증 완료, 코드 구현 대기)</div>
+
+    <div class="pipe">
+      <div class="node">
+        <span class="ntag t-in">매일 새벽 트리거 (예: 05:30 ETL)</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">부모 주소 → nx, ny (xlsx 변환)</span>
+          <span class="chip">부모 기저질환 (기능 3 등록값, 8종 중 N개)</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node highlight">
+        <span class="ntag t-api">API 호출 ✅ 실호출 검증</span>
+        <div class="napi">기상청 단기예보 조회서비스 (1360000/VilageFcstInfoService_2.0)</div>
+        <div class="nop">op: getVilageFcst · 일 트래픽 10,000건</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips">
+            <span class="chip">base_date</span><span class="chip">base_time=0500</span>
+            <span class="chip k">nx, ny</span></span></div>
+          <div class="frow"><span class="flab">핵심 출력</span><span class="chips">
+            <span class="chip k"><b>TMX</b> 일 최고기온 ★</span>
+            <span class="chip k"><b>TMN</b> 일 최저기온 ★</span>
+            <span class="chip">TMP 시간별 기온 · POP · PCP · REH · SKY · PTY</span></span></div>
+        </div>
+
+        <div class="live-data">
+          <h5>📡 실측 응답 (대구 nx=89, ny=90)</h5>
+          <div class="live-row"><span class="dt">2026-05-20</span> 최고 <span class="val">18℃</span> <span class="vd">→ 평상</span></div>
+          <div class="live-row"><span class="dt">2026-05-21</span> 최고 <span class="val">24℃</span> · 최저 <span class="val">16℃</span> <span class="vd">→ 평상</span></div>
+          <div class="live-row"><span class="dt">2026-05-22</span> 최고 <span class="val">23℃</span> · 최저 <span class="val">14℃</span> <span class="vd">→ 평상</span></div>
+          <div class="note">응답 ~0.3초, 총 900개 fcst 항목, 카테고리 13종 정상 수신</div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node highlight">
+        <span class="ntag t-judge">자체 임계값 판정 ✅</span>
+        <div class="threshold">
+          <h5>임계값 매핑 (기상청 영향예보 기준)</h5>
+          <table class="th">
+            <thead><tr><th>단계</th><th>임계값</th><th>판정 키</th><th>매핑 상태</th></tr></thead>
+            <tbody>
+              <tr><td>폭염주의보</td><td>TMX ≥ 33℃</td><td class="code">TMX</td><td class="yes">✅ 룩업 키 일치</td></tr>
+              <tr><td>폭염경보</td><td>TMX ≥ 35℃</td><td class="code">TMX</td><td class="yes">✅ 룩업 키 일치</td></tr>
+              <tr><td>한파주의보</td><td>TMN ≤ -12℃</td><td class="code">TMN</td><td class="yes">✅ 룩업 키 일치</td></tr>
+              <tr><td>한파경보</td><td>TMN ≤ -15℃</td><td class="code">TMN</td><td class="yes">✅ 룩업 키 일치</td></tr>
+            </tbody>
+          </table>
+          <p class="note">→ 별도 "기상특보 조회 API" 신청 불필요. 단기예보의 TMX·TMN 두 필드로 4단계 모두 자체 판정 가능.</p>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-file">⑦ WeatherDiseaseAdvisor — 32룰 룩업</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">rule = weather_rules_v0.2[(kcd_code, alert_level)]</span>
+          <span class="chip" style="color:#86efac">LLM 호출 없음 · 인메모리 ~10ms</span></span></div></div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">알람 피로 방지 (동일 룰 하루 1회)</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-res">최종 결과 — 자녀 앱 푸시</span>
+
+        <div class="msg-preview">
+          <h5>📣 시범 메시지 (v0.2 신규 룰 위주)</h5>
+
+          <div class="msg-card">
+            <div class="msg-head">
+              <span class="msg-sev sev-위험">위험</span>
+              <span class="msg-title">I63 뇌경색증 × 한파경보 ★ 신규</span>
+            </div>
+            <div class="msg-body">"어머님, 오늘 한파경보입니다. 이런 날 뇌경색 재발이 가장 많이 나요. 외출은 절대 안 하시는 게 좋고, 실내도 18-20℃로 따뜻하게요. FAST 증상(얼굴·팔·말) 보이면 바로 119예요."</div>
+            <div class="msg-meta">근거: cold_wave/01_kdca_general_winter.md · 약물: 항혈소판제·항응고제·강압제</div>
+          </div>
+
+          <div class="msg-card">
+            <div class="msg-head">
+              <span class="msg-sev sev-위험">위험</span>
+              <span class="msg-title">J45 천식 × 폭염경보 ★ 신규</span>
+            </div>
+            <div class="msg-body">"어머님, 오늘 폭염경보 발효예요. 고온에 천식 발작이 응급 상황으로 갈 수 있으니 가급적 외출하지 마시고, 흡입기(증상완화제) 위치 확인해드리세요. 숨이 차거나 쌕쌕거림이 심해지면 바로 전화 주시라고 해주세요."</div>
+            <div class="msg-meta">근거: heat_wave/04_mohw_어르신_오늘건강.md · 약물: 흡입 SABA·흡입 스테로이드</div>
+          </div>
+
+          <div class="msg-card">
+            <div class="msg-head">
+              <span class="msg-sev sev-경고">경고</span>
+              <span class="msg-title">M19 골관절염 × 한파경보 ★ 신규</span>
+            </div>
+            <div class="msg-body">"어머님, 오늘 한파경보입니다. 빙판·강추위에 미끄러지면 큰일 나요. 가급적 외출 안 하시고, 꼭 나가셔야 하면 미끄럼방지 신발에 천천히 잔걸음으로 걸으시도록 해주세요. 관절 통증엔 따뜻한 찜질이 좋아요."</div>
+            <div class="msg-meta">근거: cold_wave/01_kdca_general_winter.md · 약물: NSAID·아세트아미노펜</div>
+          </div>
+
+          <div class="msg-card">
+            <div class="msg-head">
+              <span class="msg-sev sev-위험">위험</span>
+              <span class="msg-title">N18 만성 신장병 × 폭염경보 ★ 신규</span>
+            </div>
+            <div class="msg-body">"어머님, 오늘 폭염경보입니다. 신장 약하신 분은 이런 날 탈수로 신장이 갑자기 나빠질 수 있어요. 외출 금지하시고, 정해주신 수분량 지키세요. 소변량이 평소보다 확 줄면 바로 알려주세요."</div>
+            <div class="msg-meta">근거: heat_wave/02_kdca_노인고혈압.md · 약물: 이뇨제·NSAID·ACEi/ARB·메트포르민</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <h4>📋 남은 작업</h4>
+      <ul>
+        <li><span class="lbl">완료</span><span><span class="ok">✅</span> 6겹 검증 (시드·룰셋 32·환각·기상청 API·자체 판정·Phase 1) — <b>데이터 단계 완전 종료</b></span></li>
+        <li><span class="lbl">다음</span><span><span class="need">→</span> <b>의료진 검수 패키지</b> (32 룰 스프레드시트 + 17건 우선 큐)</span></li>
+        <li><span class="lbl">다음</span><span><span class="need">→</span> <b>코드 구현</b> (PRD v5 모듈 ①~⑦ + API 게이트웨이)</span></li>
+        <li><span class="lbl">참고</span><span><span class="need">→</span> Phase 2 후속: F03 치매·미세먼지·황사·건조·일교차</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= 보조 응급카드 (FULL — API 흐름 복원) ================= -->
+  <section class="feature">
+    <div class="fhead">
+      <span class="fnum">+</span>
+      <span class="ftitle">보조 — 응급카드 (병원/약국 정보)</span>
+      <span class="badge b-ok">✅ V1부터 작동</span>
+    </div>
+    <p class="fdesc">병원 고유번호(ykiho)를 받아 응급실 연락처·진료시간·약국 정보를 연쇄 조회.</p>
+
+    <div class="pipe">
+      <div class="node">
+        <span class="ntag t-api">API 호출 ①</span>
+        <div class="napi">11999 · HIRA 병원정보서비스</div>
+        <div class="nop">op: getHospBasisList1</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips"><span class="chip">yadmNm 병원명 / 지역</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips"><span class="chip k"><b>ykiho</b> 암호화 요양기호 ★</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">ykiho 출력 → ②의 필수 입력값</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-api">API 호출 ②</span>
+        <div class="napi">12101 · HIRA 의료기관별상세정보서비스</div>
+        <div class="nop">op: getDtlInfo</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips"><span class="chip k">ykiho (①의 출력)</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips">
+            <span class="chip k"><b>emyNgtTelNo1</b> 야간응급실 전화</span>
+            <span class="chip">emyDayYn 주간응급실 운영</span>
+            <span class="chip">진료시간(요일별)</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cl">+ 약국은 위치/지역코드로 별도 조회</div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-api">API 호출 ③</span>
+        <div class="napi">12100 · HIRA 약국정보서비스</div>
+        <div class="nop">op: getParmacyBasisList</div>
+        <div class="fields">
+          <div class="frow"><span class="flab">입력</span><span class="chips">
+            <span class="chip">sidoCd / sgguCd</span><span class="chip">또는 xPos·yPos·radius</span></span></div>
+          <div class="frow"><span class="flab">출력</span><span class="chips">
+            <span class="chip">yadmNm 약국명</span><span class="chip">addr 주소</span>
+            <span class="chip">telno 전화</span><span class="chip">xPos·yPos 좌표</span></span></div>
+        </div>
+      </div>
+
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+
+      <div class="node">
+        <span class="ntag t-res">최종 결과</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">🆘 응급카드에 "평소 병원·응급실 전화·단골 약국" 자동 채움</span></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ★ v8 신규 ⑤ 응급카드 흐름 강화 (Slice 08) ============ -->
+  <section class="v8section new">
+    <h2>🆘 응급카드 snapshot 우선순위 + Slice 08 흐름 <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">응급의료진이 QR 스캔 1분 안에 가장 결정적인 정보를 읽도록 — snapshot JSON 구조 우선순위를 명시. <code>app.emergency_cards.snapshot</code>에 직렬화.</p>
+
+    <div class="em-sort">
+      <h5>📋 응급카드 snapshot 우선순위 (Top-down 노출)</h5>
+      <div class="em-priority">
+        <div class="em-pri p1">
+          <span class="ppill">P1 · TOP</span>
+          <div class="ptxt"><b>알레르기</b> — 약 처치 결정 (severe → moderate → mild 정렬)<br>
+          출처: <code>app.patient_allergies</code> · ORDER BY severity DESC<br>
+          예: 페니실린 severe / 아스피린 moderate</div>
+        </div>
+        <div class="em-pri p2">
+          <span class="ppill">P2</span>
+          <div class="ptxt"><b>항응고제 복용 여부</b> — 수술·시술 출혈 위험 판단<br>
+          출처: <code>ref.drugs_master.atc_code LIKE 'B01A%'</code> 우선 필터<br>
+          예: 와파린(B01AA03), 아스피린100(B01AC06), 클로피도그렐(B01AC04)</div>
+        </div>
+        <div class="em-pri p3">
+          <span class="ppill">P3</span>
+          <div class="ptxt"><b>기저질환 · 전체 약장 · 단골 병원·약국 · 자녀 연락처</b><br>
+          conditions(05 JOIN ref.disease_master) → medications(항응고제 최상단) → hospitals(is_regular DESC) → pharmacies(is_regular DESC, visit_count DESC)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe" style="margin-top:14px">
+      <div class="node">
+        <span class="ntag t-in">자녀 입력</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">단골 병원명 (예: "경북대학교병원")</span>
+          <span class="chip">또는 지역 코드 (sidoCd · sgguCd)</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-api">API ① — HIRA 11999 병원정보</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip k">출력: <b>ykiho</b> 암호화 요양기호</span>
+          <span class="chip">yadmNm · addr · telno · xPos · yPos</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cl">ykiho 연쇄</div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-api">API ② — HIRA 12101 의료기관별 상세 (응급실)</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">emyNgtTelNo1 (야간응급)</span><span class="chip">emyDayTelNo1 (주간응급)</span>
+          <span class="chip">trmtMonStart~Sat (요일별 진료시간)</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-api">API ③ — HIRA 12100 약국정보</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">sidoCd/sgguCd 또는 xPos/yPos+radius</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node highlight">
+        <span class="ntag t-judge">snapshot 직렬화 + QR 토큰</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">app.calc_age(birthdate) ← v2.1 schema prefix</span>
+          <span class="chip">B01A* 정렬 + critical_drugs 분리</span>
+          <span class="chip">secrets.token_urlsafe(48) → qr_token</span>
+          <span class="chip">valid_until = now() + 90일</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-res">외부 QR 노출 — GET /em/{token}</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">access_count++ 원자적 UPDATE (race condition 차단)</span>
+          <span class="chip">Rate limit: IP 10/min · token 60/hr · token 200/day</span>
+          <span class="chip">200/day 초과 → auto-revoke + 자녀 알람</span></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ★ v8 신규 ⑥ 날씨 ETL 락 + delivery_status ============ -->
+  <section class="v8section new">
+    <h2>⏰ 날씨 ETL 락 + delivery_status 6종 <span class="v8tag">V8 NEW</span></h2>
+    <p class="v8sub">Slice 07 v2.1 — 매일 05:30 KST ETL이 동일-일 중복 실행 / 동일 부모 중복 푸시를 방지. <code>logs.advisory_push_log.delivery_status</code>의 6가지 종착 상태로 운영 메트릭 분리.</p>
+
+    <div class="etl-lock">
+      <h5>🔒 Redis 락 2단 (v2.1 cross-ref 검수 반영)</h5>
+      <div class="lock-row">
+        <span class="lk-label">잡 레벨</span>
+        <span class="lk-key">weather_etl:job:&lt;date&gt;</span>
+        <span class="lk-purpose">30분 TTL · 동일-일 ETL 중복 실행 방지 (수동 트리거·재시도)</span>
+      </div>
+      <div class="lock-row">
+        <span class="lk-label">부모 레벨</span>
+        <span class="lk-key">weather_etl:parent:&lt;pid&gt;:&lt;date&gt;</span>
+        <span class="lk-purpose">5분 TTL · 부모 1명당 동일-일 1푸시 보장 (파티션 UNIQUE 대체)</span>
+      </div>
+    </div>
+
+    <div class="etl-lock">
+      <h5>📦 delivery_status — logs.advisory_push_log CHECK 6종</h5>
+      <div class="etl-status">
+        <span class="est-pill sent">'sent' · 정상 발송</span>
+        <span class="est-pill failed">'failed' · FCM/APNs 실패</span>
+        <span class="est-pill simulated">'simulated' · 시뮬레이션 모드</span>
+        <span class="est-pill fatigue">'skipped_fatigue' · 어제 보냄 (피로)</span>
+        <span class="est-pill review">'skipped_review' · 검수 미통과 ★ v2.1</span>
+        <span class="est-pill dup">'skipped_duplicate_run' · 락 충돌 ★ v2.1</span>
+      </div>
+      <p class="note">'skipped_review'는 v2.1에서 'skipped_fatigue'로부터 분리됨 — 운영 메트릭에서 "검수 보류"와 "알람 피로"를 구분.</p>
+    </div>
+
+    <div class="pipe" style="margin-top:14px">
+      <div class="node">
+        <span class="ntag t-in">매일 05:30 KST 트리거</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">Kubernetes CronJob: <code>schedule: "30 5 * * *"</code></span>
+          <span class="chip">timeout 30분, retry 3회</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cl">🔒 잡 레벨 Redis 락 (30분 TTL)</div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-file">활성 부모 SELECT</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">app.patient_profiles WHERE consent_data_share AND nx IS NOT NULL</span>
+          <span class="chip">unique 격자 set 추출 (중복 호출 방지)</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node highlight">
+        <span class="ntag t-api">기상청 단기예보 (1360000/VilageFcstInfoService_2.0)</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip k">TMX (오늘 최고) → 폭염 판정</span>
+          <span class="chip k">TMN (내일 최저) → 한파 판정</span>
+          <span class="chip">→ logs.weather_observations_daily upsert</span></span></div></div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cl">🔒 부모 레벨 Redis 락 (5분 TTL)</div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-file">부모별 룰 룩업 + 우선순위</span>
+        <div class="fields">
+          <div class="frow"><span class="flab">JOIN</span><span class="chips">
+            <span class="chip">app.patient_conditions ← (slice 05)</span>
+            <span class="chip">ref.weather_rules ← (slice 06 lookup_rules)</span></span></div>
+          <div class="frow"><span class="flab">우선순위</span><span class="chips">
+            <span class="chip">severity: 위험 &gt; 경고 &gt; 주의 &gt; 관심</span>
+            <span class="chip">부모 1명당 1푸시 max</span></span></div>
+        </div>
+      </div>
+      <div class="conn"><div class="ln"></div><div class="cv">▼</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="ntag t-res">자녀 푸시 + delivery_status 기록</span>
+        <div class="fields"><div class="frow"><span class="chips">
+          <span class="chip">app.device_tokens JOIN + pgp_sym_decrypt</span>
+          <span class="chip">push_service.send() → FCM/APNs</span>
+          <span class="chip">logs.advisory_push_log INSERT (6 enum 중 1)</span></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="endbox">
+    <b style="color:var(--txt)">V8 요약 — 백엔드 설계 완전 통합 🏁</b><br><br>
+    엄마약 5개 핵심 기능 + 응급카드 모두 API 입출력 흐름 + <b style="color:#67e8f9">백엔드 9 슬라이스 · 4-schema 24 테이블 · 17 블로커 해결</b> 한 문서:<br>
+    <b style="color:#4ade80">기능 1 ✅ · 기능 2 ✅ · 기능 3 ✅ · 기능 5 ✅(32룰 / 8질병) · 응급카드 ✅</b><br><br>
+    <b style="color:#67e8f9">+ 4-schema 아키텍처 · 슬라이스 빌드 순서 · DDL 미니맵 · 블로커 매트릭스 · 응급카드 우선순위 · ETL Redis 락 · LLM 모델 추상화</b><br><br>
+    이제 <b style="color:#86efac">의료진 검수 패키지 + 백엔드 코드 구현</b>으로 진입 가능.
+  </div>
+
+</div>
+</body>
+</html>
