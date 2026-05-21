@@ -35,6 +35,10 @@ external:
   gemini:
     # Gemini API 키입니다. Slice 03에서 LLM 기반 NB 추출에 사용합니다.
     api-key: ${GEMINI_API_KEY:}
+    # 기본 Gemini 모델입니다. 모델 교체 시 환경변수만 바꾸면 됩니다.
+    model: ${GEMINI_MODEL:gemini-2.5-flash-lite}
+    # prompt/schema 변경을 추적하기 위한 기본 버전입니다.
+    prompt-version: ${GEMINI_PROMPT_VERSION:v1}
 
 app:
   # pgcrypto 컬럼 암호화에 사용할 애플리케이션 마스터키입니다.
