@@ -11,7 +11,7 @@ services:
 
     # 호스트 5432 포트를 컨테이너 5432 포트에 연결해 Spring Boot가 localhost로 접근할 수 있게 합니다.
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
 
     environment:
       # DB 이름/계정/비밀번호는 .env에서 주입합니다. 실제 비밀번호를 compose 파일에 적지 않습니다.
