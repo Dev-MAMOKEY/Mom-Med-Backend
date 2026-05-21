@@ -29,6 +29,22 @@ spring:
     # 요청 처리 중 지연 로딩으로 DB 세션이 오래 열리는 것을 막습니다.
     open-in-view: false
 
+  flyway:
+    # 애플리케이션 시작 시 Flyway 마이그레이션을 자동 실행합니다.
+    enabled: true
+    # Flyway 표준 위치입니다. V1__name.sql 형식의 파일을 이 경로에서 읽습니다.
+    locations: classpath:db/migration
+    # 새 DB를 기준으로 관리하므로 기존 schema를 무조건 baseline 처리하지 않습니다.
+    baseline-on-migrate: false
+    # 마이그레이션 적용 전 checksum과 순서를 검증해 수정된 과거 SQL을 감지합니다.
+    validate-on-migrate: true
+    # Flyway metadata table을 둘 기본 schema입니다.
+    default-schema: app
+    # 프로젝트에서 관리하는 4-schema 목록입니다. Flyway가 schema 존재를 보장합니다.
+    schemas: app,ref,derived,logs
+    # 빈 DB에서 schema가 없어도 Flyway가 먼저 생성할 수 있게 합니다.
+    create-schemas: true
+
 server:
   # 로컬 및 기본 실행 포트입니다.
   port: 8080
