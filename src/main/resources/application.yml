@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: mom-med-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Seoul
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    schemas: ref,app,derived,logs
+    default-schema: app
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    mamokey.mom_med: DEBUG
