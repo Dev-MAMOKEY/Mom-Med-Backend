@@ -18,14 +18,42 @@ repositories {
 }
 
 dependencies {
+	// 영속성: JPA 리포지토리, Flyway 마이그레이션, PostgreSQL 런타임 드라이버.
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// 캐시/분산 제어: Redis 접근과 Redisson 연동.
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.redisson:redisson-spring-boot-starter:4.3.1'
+
+	// 요청 제한: API rate limit 구현에 사용할 Bucket4j 코어.
+	implementation 'com.bucket4j:bucket4j-core:8.10.1'
+
+	// API 계층: MVC 엔드포인트, 입력값 검증, Swagger/OpenAPI UI.
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+
+	// 객체 매핑: MapStruct 기반 컴파일 타임 mapper 생성.
+	implementation 'org.mapstruct:mapstruct:1.6.3'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+	// Lombok: 컴파일 타임 보일러플레이트 코드 생성.
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// Spring Boot 테스트: validation 및 MVC 레이어 테스트 지원.
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
+	// Testcontainers: PostgreSQL 통합 테스트 컨테이너와 JUnit 5 생명주기 지원.
+	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.6')
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:postgresql'
+
+	// 테스트 컴파일: Lombok annotation processing과 JUnit Platform launcher.
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
