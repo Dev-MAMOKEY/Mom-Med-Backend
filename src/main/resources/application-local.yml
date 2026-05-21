@@ -1,29 +1,46 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
     hikari:
+      # 로컬 개발에서 과도한 커넥션 생성을 피하기 위한 최대 커넥션 수입니다.
       maximum-pool-size: 10
+      # 요청이 적을 때도 유지할 최소 idle 커넥션 수입니다.
       minimum-idle: 2
+      # DB 연결 획득 대기 시간입니다. 로컬 장애를 빨리 확인할 수 있게 짧게 둡니다.
       connection-timeout: 10000
+
+  jpa:
+    # 실행 SQL을 콘솔에 출력하는 개발 편의 설정입니다. 운영 공통 설정에는 두지 않습니다.
+    show-sql: true
+    properties:
+      hibernate:
+        # 콘솔 SQL을 읽기 쉽게 줄바꿈/들여쓰기합니다.
+        format_sql: true
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      # Redis 연결 URL입니다. Slice 04/07에서 rate limit과 lock에 사용합니다.
+      url: ${REDIS_URL:redis://localhost:6379}
 
-# 외부 API 키 (실제 값은 .env / OS 환경변수)
+# 외부 API 인증키 설정입니다. 실제 값은 .env 또는 실행 환경변수로만 주입합니다.
 external:
   mfds:
-    api-key: ${MFDS_API_KEY} # 식약처 API 키
+    # 식약처 API 키입니다. Slice 01에서 의약품 허가정보/낱알식별 조회에 사용합니다.
+    api-key: ${MFDS_API_KEY:}
   hira:
-    api-key: ${HIRA_API_KEY} # 건강보험심사평가원 API 키
+    # HIRA API 키입니다. Slice 02/05/08에서 DUR, 질병, 병원/약국 데이터에 사용합니다.
+    api-key: ${HIRA_API_KEY:}
   kma:
-    api-key: ${KMA_API_KEY} # 기상청 API 키
+    # 기상청 API 키입니다. Slice 07에서 단기예보 조회에 사용합니다.
+    api-key: ${KMA_API_KEY:}
   gemini:
-    api-key: ${GEMINI_API_KEY} # Gemini API 키
+    # Gemini API 키입니다. Slice 03에서 LLM 기반 NB 추출에 사용합니다.
+    api-key: ${GEMINI_API_KEY:}
 
 app:
-  encryption-key: ${APP_ENCRYPTION_KEY} # 앱 자체 암호화 키
+  # pgcrypto 컬럼 암호화에 사용할 애플리케이션 마스터키입니다.
+  encryption-key: ${APP_ENCRYPTION_KEY:}
+
+logging:
+  level:
+    # local profile에서만 Hibernate SQL 로그를 자세히 봅니다.
+    org.hibernate.SQL: DEBUG
