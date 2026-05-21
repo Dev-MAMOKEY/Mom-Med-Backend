@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# 외부 API 키 (실제 값은 .env / OS 환경변수)
+external:
+  mfds:
+    api-key: ${MFDS_API_KEY} # 식약처 API 키
+  hira:
+    api-key: ${HIRA_API_KEY} # 건강보험심사평가원 API 키
+  kma:
+    api-key: ${KMA_API_KEY} # 기상청 API 키
+  gemini:
+    api-key: ${GEMINI_API_KEY} # Gemini API 키
+
+app:
+  encryption-key: ${APP_ENCRYPTION_KEY} # 앱 자체 암호화 키
