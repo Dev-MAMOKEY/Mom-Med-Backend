@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ public class GeminiClient {
 	private final String defaultPromptVersion;
 	private final Duration retryBackoff;
 
+	@Autowired
 	public GeminiClient(
 			RestClient.Builder restClientBuilder,
 			@Value("${external.gemini.api-key:}") String apiKey,
