@@ -3,6 +3,12 @@ spring:
     # 로그, Swagger 문서, 관측성 도구에서 이 백엔드 서비스를 구분할 때 쓰는 이름입니다.
     name: mom-med-backend
 
+  config:
+    # Docker Compose는 .env를 자동으로 읽지만, gradlew bootRun으로 실행되는 Spring Boot는 기본적으로 읽지 않습니다.
+    # 이 import를 통해 로컬 실행에서도 DATABASE_URL, POSTGRES_USER, POSTGRES_PASSWORD 값을 .env에서 가져옵니다.
+    # optional이라 CI나 운영처럼 .env가 없는 환경에서도 시스템 환경변수만으로 실행할 수 있습니다.
+    import: optional:file:.env[.properties]
+
   profiles:
     # 별도 지정이 없으면 local profile로 실행합니다.
     # 운영/CI에서는 SPRING_PROFILES_ACTIVE로 원하는 profile을 명시하면 됩니다.
