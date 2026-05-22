@@ -12,11 +12,22 @@ docker compose up -d
 docker ps
 ```
 
-로컬 `5432` 포트가 이미 다른 PostgreSQL에서 사용 중이면 `.env`에서 호스트 포트를 바꿉니다.
+로컬에 직접 설치한 PostgreSQL을 사용한다면 `.env`에는 애플리케이션 접속용 값을 아래처럼 둡니다.
+
+```env
+DB_URL=jdbc:postgresql://localhost:5432/mom-med
+DB_USER=postgres
+DB_PASSWORD=your-local-password
+```
+
+Docker Compose PostgreSQL을 사용할 때 로컬 `5432` 포트가 이미 사용 중이면 컨테이너 포트와 JDBC URL을 함께 바꿉니다.
 
 ```env
 POSTGRES_PORT=15432
-DATABASE_URL=jdbc:postgresql://127.0.0.1:15432/mom_med
+POSTGRES_DB=mom-med
+DB_URL=jdbc:postgresql://127.0.0.1:15432/mom-med
+DB_USER=postgres
+DB_PASSWORD=your-local-password
 ```
 
 Spring Boot를 migration smoke 용도로 한 번만 기동합니다.

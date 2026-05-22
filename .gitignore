@@ -9,7 +9,7 @@ HELP.md
 # Gradle 빌드 캐시와 산출물입니다. 개발자마다 달라지므로 Git에 올리지 않습니다.
 .gradle
 build/
-build_verify/
+build_verify*/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

@@ -10,11 +10,11 @@ CREATE SCHEMA IF NOT EXISTS app;
 -- 원천 데이터를 가공하거나 캐시한 데이터가 들어갑니다. 예: NB 추출 결과, 안전판정 중간 결과.
 CREATE SCHEMA IF NOT EXISTS derived;
 
--- 시간에 따라 쌓이는 감사, 판정, 외부 호출 로그가 들어갑니다.
+-- 시간이 지나며 쌓이는 감사/판정/외부 호출 로그가 들어갑니다.
 CREATE SCHEMA IF NOT EXISTS logs;
 
--- 개발 편의를 위해 현재 접속 DB의 기본 search_path를 4-schema 순서로 지정합니다.
--- DB 이름을 mom_med로 하드코딩하지 않고 current_database()를 써서 로컬/CI DB 이름 차이를 흡수합니다.
+-- 개발 편의를 위해 현재 접속한 DB의 기본 search_path를 지정합니다.
+-- DB 이름을 mom_med로 고정하지 않고 current_database()를 사용해 로컬/CI DB 이름 차이를 흡수합니다.
 DO $$
 BEGIN
     EXECUTE format(
