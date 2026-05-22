@@ -1,7 +1,11 @@
 package mamokey.mom_med.backend;
 
+import mamokey.mom_med.backend.domain.drug.repository.DrugMasterRepository;
+import mamokey.mom_med.backend.domain.drug.repository.PillVisualRepository;
+import mamokey.mom_med.backend.external.mfds.MfdsClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Spring ApplicationContext가 최소 설정으로 정상 생성되는지 확인하는 smoke test입니다.
@@ -16,6 +20,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 				+ "org.redisson.spring.starter.RedissonAutoConfigurationV4"
 })
 class BackendApplicationTests {
+
+	@MockitoBean
+	DrugMasterRepository drugMasterRepository;
+
+	@MockitoBean
+	PillVisualRepository pillVisualRepository;
+
+	@MockitoBean
+	MfdsClient mfdsClient;
 
 	@Test
 	void contextLoads() {
