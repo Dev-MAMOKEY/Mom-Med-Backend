@@ -10,13 +10,14 @@ spring:
 
   datasource:
     # 애플리케이션 DB 접속 URL입니다.
-    # 현재 프로젝트에서는 .env의 DB_URL을 표준으로 사용합니다.
-    # 이전에 쓰던 DATABASE_URL이 남아 있는 팀원 환경도 깨지지 않도록 fallback을 둡니다.
-    url: ${DB_URL:${DATABASE_URL:jdbc:postgresql://localhost:5432/mom-med}}
-    # 애플리케이션 DB 접속 계정입니다. .env의 DB_USER를 우선 사용합니다.
-    username: ${DB_USER:${POSTGRES_USER:postgres}}
+    # 현재 프로젝트에서는 Docker Compose .env의 DATABASE_URL을 우선 사용합니다.
+    # 예: jdbc:postgresql://127.0.0.1:15432/mom_med
+    # 이전 DB_URL을 쓰던 팀원 환경도 깨지지 않도록 fallback을 둡니다.
+    url: ${DATABASE_URL:${DB_URL:jdbc:postgresql://127.0.0.1:${POSTGRES_PORT:5432}/${POSTGRES_DB:mom_med}}}
+    # 애플리케이션 DB 접속 계정입니다. Docker Compose와 같은 POSTGRES_USER를 우선 사용합니다.
+    username: ${POSTGRES_USER:${DB_USER:postgres}}
     # 애플리케이션 DB 접속 비밀번호입니다. 실제 값은 .env에만 두고 Git에는 올리지 않습니다.
-    password: ${DB_PASSWORD:${POSTGRES_PASSWORD:}}
+    password: ${POSTGRES_PASSWORD:${DB_PASSWORD:}}
     # PostgreSQL JDBC driver를 명시해 datasource 자동 구성을 안정적으로 만듭니다.
     driver-class-name: org.postgresql.Driver
 
