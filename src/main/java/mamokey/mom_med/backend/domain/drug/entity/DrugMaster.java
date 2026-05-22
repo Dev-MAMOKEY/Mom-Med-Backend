@@ -123,7 +123,8 @@ public class DrugMaster {
 	 * 식약처 CHANGE_DATE가 있으면 날짜 비교를 우선하고, 없으면 refreshed_at 기준 30일 TTL을 적용합니다.
 	 */
 	public boolean isFresh(LocalDate apiChangeDate, Clock clock) {
-		if (apiChangeDate != null && sourceChangeDate != null) {
+		// API가 CHANGE_DATE를 주면 원본 날짜를 신뢰하고, 날짜가 없을 때만 TTL fallback을 사용합니다.
+		if (apiChangeDate != null) {
 			return sourceChangeDate.equals(apiChangeDate);
 		}
 		if (refreshedAt == null) {

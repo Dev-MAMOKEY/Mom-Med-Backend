@@ -11,6 +11,7 @@ public record MfdsDrugListItem(
 		@JsonProperty("ENTP_NAME") String entpName,
 		@JsonProperty("ITEM_PERMIT_DATE") String itemPermitDate,
 		@JsonProperty("SPCLTY_PBLC") String specialtyType,
+		@JsonProperty("ITEM_INGR_NAME") String itemIngrName,
 		@JsonProperty("EDI_CODE") String ediCode,
 		@JsonProperty("BIZRNO") String bizrno,
 		@JsonProperty("CHANGE_DATE") String changeDate
