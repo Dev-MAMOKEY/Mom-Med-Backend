@@ -13,9 +13,14 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 /**
- * Gemini API 호출을 감싸는 얇은 클라이언트입니다.
- * <p>
- * 후속 슬라이스는 Google API 요청/응답 구조를 직접 알 필요 없이 {@link #call(String)}만 사용합니다.
+ * Gemini API 호출을 담당하는 LLM 클라이언트입니다.
+ *
+ * <p>후속 슬라이스가 Google API 요청/응답 구조를 직접 알 필요 없이 {@link #call(String)}만 사용하게 하는
+ * 얇은 래퍼입니다. API key, 기본 모델, prompt version은 application-local.yml의 external.gemini 설정에서
+ * 주입됩니다.</p>
+ *
+ * <p>유지보수 주의: 이 클래스는 "HTTP 호출과 응답 파싱"까지만 책임집니다.
+ * NB 추출 prompt 작성, 결과 schema 검증, 환각 검증은 Slice 03 비즈니스 로직에서 처리해야 합니다.</p>
  */
 @Component
 public class GeminiClient {
@@ -47,6 +52,7 @@ public class GeminiClient {
 			String defaultPromptVersion,
 			Duration retryBackoff
 	) {
+		// package-private 생성자는 MockRestServiceServer를 붙이는 단위 테스트에서만 사용합니다.
 		this.restClient = restClient;
 		this.apiKey = apiKey;
 		this.defaultModel = defaultModel;
@@ -54,10 +60,19 @@ public class GeminiClient {
 		this.retryBackoff = retryBackoff;
 	}
 
+	/**
+	 * 기본 모델, JSON mode, 기본 prompt version으로 Gemini를 호출합니다.
+	 */
 	public LLMResponse call(String prompt) {
 		return call(prompt, defaultModel, true, DEFAULT_MAX_OUTPUT_TOKENS, defaultPromptVersion);
 	}
 
+	/**
+	 * Gemini generateContent API를 호출하고 프로젝트 공통 응답 형식으로 변환합니다.
+	 *
+	 * <p>요청 body는 Google API 규격에 맞춰 contents와 generationConfig로 구성합니다.
+	 * jsonMode가 true이면 responseMimeType을 application/json으로 보내 후속 JSON 파싱 안정성을 높입니다.</p>
+	 */
 	public LLMResponse call(
 			String prompt,
 			String model,
@@ -109,6 +124,7 @@ public class GeminiClient {
 						.body(GeminiGenerateContentResponse.class);
 			}
 			catch (RestClientResponseException exception) {
+				// Gemini 서버의 일시적 5xx 오류는 한 번만 재시도합니다. 4xx는 요청 문제이므로 바로 실패시킵니다.
 				if (exception.getStatusCode().is5xxServerError() && attempt == 0) {
 					sleepBeforeRetry();
 					continue;
@@ -153,6 +169,9 @@ public class GeminiClient {
 		return text;
 	}
 
+	/**
+	 * 외부 LLM 호출 실패를 애플리케이션 내부 예외로 감싸기 위한 예외 타입입니다.
+	 */
 	public static class GeminiClientException extends RuntimeException {
 
 		public GeminiClientException(String message) {
@@ -164,6 +183,7 @@ public class GeminiClient {
 		}
 	}
 
+	// 아래 record들은 Gemini 응답 JSON에서 현재 필요한 필드만 파싱하기 위한 내부 DTO입니다.
 	private record GeminiGenerateContentResponse(
 			List<GeminiCandidate> candidates,
 			GeminiUsageMetadata usageMetadata
