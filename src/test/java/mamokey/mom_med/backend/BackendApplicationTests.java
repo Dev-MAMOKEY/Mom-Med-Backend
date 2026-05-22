@@ -1,21 +1,42 @@
 package mamokey.mom_med.backend;
 
+import mamokey.mom_med.backend.parent.repository.DeviceTokenRepository;
+import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
+import mamokey.mom_med.backend.parent.repository.PatientProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Spring ApplicationContext가 최소 설정으로 정상 생성되는지 확인하는 smoke test입니다.
  *
  * <p>이 테스트는 공통 Bean wiring 오류를 빠르게 잡는 목적입니다.
- * 실제 DB/Redis 연결 검증은 별도 smoke test에서 수행하므로, 여기서는 DataSource/JPA/Redisson 자동 설정을 제외합니다.</p>
+ * 실제 DB/Redis 연결 검증은 별도 smoke test에서 수행하므로, 여기서는 DataSource/JPA/Redisson 자동 설정을 제외합니다.
+ * 대신 JPA 리포지토리와 JDBC 템플릿은 Mockito Mock으로 교체하여 Bean wiring만 검증합니다.</p>
  */
 @SpringBootTest(properties = {
 		"spring.autoconfigure.exclude="
 				+ "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
 				+ "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
-				+ "org.redisson.spring.starter.RedissonAutoConfigurationV4"
+				+ "org.redisson.spring.starter.RedissonAutoConfigurationV4,"
+				+ "mamokey.mom_med.backend.global.config.JpaAuditingAutoConfig"
 })
 class BackendApplicationTests {
+
+	// JPA: HibernateJpaAutoConfiguration 제외 시 JPA 리포지토리 Bean이 생성되지 않으므로 Mock으로 대체합니다.
+	@MockitoBean
+	PatientProfileRepository patientProfileRepository;
+
+	@MockitoBean
+	PatientAllergyRepository patientAllergyRepository;
+
+	@MockitoBean
+	DeviceTokenRepository deviceTokenRepository;
+
+	// JDBC: DataSourceAutoConfiguration 제외 시 JdbcTemplate Bean이 생성되지 않으므로 Mock으로 대체합니다.
+	@MockitoBean
+	NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@Test
 	void contextLoads() {
