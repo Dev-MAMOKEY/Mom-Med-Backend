@@ -39,3 +39,4 @@ out/
 ### IntelliJ에서 열리지 않는 파일들은 깃에 올리지 않음 ###
 /data
 /기상청41_단기예보 조회서비스_오픈API활용가이드_2510
+applicaion.yaml

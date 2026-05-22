@@ -1,0 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS ref;
+CREATE SCHEMA IF NOT EXISTS app;
+CREATE SCHEMA IF NOT EXISTS derived;
+CREATE SCHEMA IF NOT EXISTS logs;
+
+ALTER DATABASE mom_med SET search_path TO app, ref, derived, logs, public;
