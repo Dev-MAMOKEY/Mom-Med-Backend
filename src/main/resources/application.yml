@@ -1,52 +1,56 @@
 spring:
   application:
-    # 애플리케이션 이름입니다. 로그, Actuator, 관측 지표에서 서비스 식별자로 사용됩니다.
+    # 로그, Swagger 문서, 관측성 도구에서 이 백엔드 서비스를 구분할 때 쓰는 이름입니다.
     name: mom-med-backend
 
   profiles:
     # 별도 지정이 없으면 local profile로 실행합니다.
+    # 운영/CI에서는 SPRING_PROFILES_ACTIVE로 원하는 profile을 명시하면 됩니다.
     active: ${SPRING_PROFILES_ACTIVE:local}
 
   datasource:
-    # Spring Boot가 PostgreSQL에 접속할 JDBC URL입니다. 실제 값은 .env 또는 실행 환경변수로 주입합니다.
+    # Spring Boot가 PostgreSQL에 접속할 때 사용하는 JDBC URL입니다.
+    # 실제 값은 .env 또는 실행 환경변수로 주입합니다.
     url: ${DATABASE_URL}
-    # PostgreSQL 접속 계정입니다. Docker Compose의 POSTGRES_USER와 같은 값을 사용합니다.
+    # Docker Compose의 POSTGRES_USER와 같은 값을 사용해야 접속할 수 있습니다.
     username: ${POSTGRES_USER}
-    # PostgreSQL 접속 비밀번호입니다. 실제 값은 절대 Git에 커밋하지 않습니다.
+    # 실제 비밀번호는 .env에만 두고 Git에는 올리지 않습니다.
     password: ${POSTGRES_PASSWORD}
-    # PostgreSQL JDBC 드라이버를 명시해 datasource 자동 구성을 안정화합니다.
+    # PostgreSQL JDBC driver를 명시해 datasource 자동 구성을 안정적으로 만듭니다.
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      # Flyway가 schema를 관리하므로 Hibernate는 DDL을 생성하지 않고 매핑 검증만 수행합니다.
+      # DB schema는 Flyway가 관리합니다.
+      # Hibernate가 테이블을 자동 생성/수정하지 않고 Entity와 DB 구조가 맞는지만 검증합니다.
       ddl-auto: validate
     properties:
       hibernate:
         jdbc:
-          # DB 저장/조회 시각 기준을 서비스 기본 시간대에 맞춥니다.
+          # DB 시간대와 애플리케이션 기본 시간대를 맞춰 created_at/updated_at 혼선을 줄입니다.
           time_zone: Asia/Seoul
-    # 요청 처리 중 지연 로딩으로 DB 세션이 오래 열리는 것을 막습니다.
+    # 요청이 끝난 뒤에도 DB session이 오래 열려 있는 문제를 막습니다.
     open-in-view: false
 
   flyway:
-    # 애플리케이션 시작 시 Flyway 마이그레이션을 자동 실행합니다.
+    # 애플리케이션 시작 시 db/migration 아래 SQL을 버전 순서대로 자동 실행합니다.
     enabled: true
-    # Flyway 표준 위치입니다. V1__name.sql 형식의 파일을 이 경로에서 읽습니다.
+    # Flyway가 읽을 마이그레이션 파일 위치입니다.
     locations: classpath:db/migration
-    # 새 DB를 기준으로 관리하므로 기존 schema를 무조건 baseline 처리하지 않습니다.
+    # 빈 DB를 기준으로 관리하므로 기존 schema를 임의로 baseline 처리하지 않습니다.
     baseline-on-migrate: false
-    # 마이그레이션 적용 전 checksum과 순서를 검증해 수정된 과거 SQL을 감지합니다.
+    # 이미 적용된 SQL이 수정되었는지 checksum으로 검증합니다.
+    # 한 번 커밋된 V 파일은 수정하지 말고 V2, V3처럼 새 파일을 추가해야 합니다.
     validate-on-migrate: true
-    # Flyway metadata table을 둘 기본 schema입니다.
+    # flyway_schema_history 테이블을 app schema에 둡니다.
     default-schema: app
-    # 프로젝트에서 관리하는 4-schema 목록입니다. Flyway가 schema 존재를 보장합니다.
+    # 프로젝트에서 사용하는 4개 schema입니다. Flyway가 존재 여부를 보장합니다.
     schemas: app,ref,derived,logs
-    # 빈 DB에서 schema가 없어도 Flyway가 먼저 생성할 수 있게 합니다.
+    # 빈 DB에서 schema가 없으면 Flyway가 먼저 생성합니다.
     create-schemas: true
 
 server:
-  # 로컬 및 기본 실행 포트입니다.
+  # 로컬과 기본 실행 환경에서 사용할 HTTP 포트입니다.
   port: 8080
 
 springdoc:
@@ -54,11 +58,11 @@ springdoc:
     # OpenAPI JSON 문서 경로입니다.
     path: /v3/api-docs
   swagger-ui:
-    # Swagger UI 접근 경로입니다.
+    # Swagger UI 접속 경로입니다.
     path: /swagger-ui.html
 
 logging:
   level:
-    # 공통 로그는 과하게 자세하지 않게 두고, local profile에서 개발용 SQL 로그를 켭니다.
+    # 공통 로그는 과도하게 자세하지 않게 두고, local profile에서 개발용 SQL 로그만 추가로 켭니다.
     org.springframework.web: INFO
     mamokey.mom_med: INFO

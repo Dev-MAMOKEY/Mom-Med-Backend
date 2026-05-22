@@ -16,6 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+/**
+ * GeminiClient의 HTTP 요청 형식, 응답 파싱, 5xx 재시도 동작을 검증합니다.
+ *
+ * <p>실제 Gemini API를 호출하지 않고 MockRestServiceServer로 HTTP 응답을 흉내 냅니다.
+ * 이렇게 하면 API key 없이도 CI에서 안정적으로 실행할 수 있습니다.</p>
+ */
 class GeminiClientTest {
 
 	@Test
@@ -68,6 +74,7 @@ class GeminiClientTest {
 		GeminiClient client = new GeminiClient(builder.build(), "test-key", "gemini-2.5-flash-lite", "v1",
 				Duration.ZERO);
 
+		// 첫 요청은 5xx로 실패시키고, 두 번째 요청은 성공시켜 "1회 재시도" 정책을 검증합니다.
 		server.expect(once(), requestTo(
 						"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
 				))

@@ -8,6 +8,12 @@ import java.util.Map;
 import mamokey.mom_med.backend.global.util.HallucinationVerifier.VerifyResult;
 import org.junit.jupiter.api.Test;
 
+/**
+ * HallucinationVerifier의 3단계 매칭 규칙을 검증하는 테스트입니다.
+ *
+ * <p>LLM 안전망은 "대충 맞는 것"보다 "왜 통과했는지 설명 가능한 것"이 중요합니다.
+ * 그래서 exact, normalized, fuzzy, hallucinated를 각각 따로 테스트해 의도한 단계로 집계되는지 확인합니다.</p>
+ */
 class HallucinationVerifierTest {
 
 	@Test
@@ -71,6 +77,7 @@ class HallucinationVerifierTest {
 	}
 
 	private static Map<String, Object> extraction(String file, String quote) {
+		// Slice 03의 예상 LLM 추출 구조를 단순화한 fixture입니다.
 		return Map.of(
 				"interactions", List.of(Map.of(
 						"drug", "amlodipine",
