@@ -28,6 +28,12 @@ external:
 
 app:
   encryption-key: za3zPt7124hpw/vGP7WQEGkfRD44sRerkcUVQ8zk2qs=
+  etl:
+    dur:
+      enabled: true
+      combo-path: drug_csv/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv
+      elderly-path: drug_csv/의약품안전사용서비스(DUR)_노인주의 품목리스트 2025.6.csv
+      elderly-nsaid-path: drug_csv/의약품안전사용서비스(DUR)_노인주의(해열진통소염제) 품목리스트 2025.6.csv
 
 logging:
   level:

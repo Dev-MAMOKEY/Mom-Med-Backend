@@ -56,7 +56,7 @@ public class DeviceToken {
 
     @Column(name = "created_at", nullable = false, updatable = false,
             columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // ─── 수정 ─────────────────────────────────────────────────────────────
 
