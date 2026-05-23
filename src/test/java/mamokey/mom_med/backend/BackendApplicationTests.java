@@ -5,7 +5,10 @@ import mamokey.mom_med.backend.domain.drug.repository.PillVisualRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
+import mamokey.mom_med.backend.domain.nb.repository.NbExtractionRepository;
+import mamokey.mom_med.backend.domain.nb.repository.NbInteractionRepository;
 import mamokey.mom_med.backend.external.mfds.MfdsClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -40,7 +43,16 @@ class BackendApplicationTests {
 	DurElderlyNsaidCautionRepository durElderlyNsaidCautionRepository;
 
 	@MockitoBean
+	NbExtractionRepository nbExtractionRepository;
+
+	@MockitoBean
+	NbInteractionRepository nbInteractionRepository;
+
+	@MockitoBean
 	MfdsClient mfdsClient;
+
+	@MockitoBean
+	ObjectMapper objectMapper;
 
 	@Test
 	void contextLoads() {
