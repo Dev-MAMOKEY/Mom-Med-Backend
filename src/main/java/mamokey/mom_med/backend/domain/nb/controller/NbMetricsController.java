@@ -3,7 +3,6 @@ package mamokey.mom_med.backend.domain.nb.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>운영 관측성은 이후 Prometheus/Actuator로 확장할 수 있지만, 현재 슬라이스에서는
  * NB 추출 시 DB에 저장한 token_input, token_output, cost_usd를 바로 확인할 수 있으면 충분합니다.
- * JdbcTemplate Bean이 있을 때만 등록되므로 DB 없는 단위 테스트 컨텍스트에는 영향을 주지 않습니다.</p>
+ * Spring Boot + Spring Data JPA 환경에서는 JdbcTemplate이 항상 자동 등록되므로
+ * 별도의 조건부 등록 없이 일반 컨트롤러로 노출합니다.</p>
  */
 @RestController
-@ConditionalOnBean(JdbcTemplate.class)
 public class NbMetricsController {
 
 	private static final String NB_USAGE_QUERY = """
