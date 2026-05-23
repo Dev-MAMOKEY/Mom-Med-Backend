@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,6 +96,22 @@ public class NbExtractionService {
 				nbInteractionRepository.findByExtractionIdOrderByIdAsc(extraction.getId()),
 				true
 		);
+	}
+
+	/**
+	 * SafetyJudge에서 "이미 검증된 NB 캐시만 있으면 사용"해야 할 때 사용하는 조회 메서드입니다.
+	 *
+	 * <p>{@link #findVerified(String)}처럼 예외를 던지면 상위 트랜잭션이 rollback-only로 표시될 수 있습니다.
+	 * safety/check에서는 NB 캐시가 없다는 사실이 오류가 아니라 "NB evidence 없음"에 가까우므로 Optional로 반환합니다.</p>
+	 */
+	@Transactional(readOnly = true)
+	public Optional<NbExtractionResult> findVerifiedOptional(String itemSeq) {
+		return nbExtractionRepository.findFirstByItemSeqAndVerifiedTrueOrderByIdDesc(itemSeq)
+				.map(extraction -> new NbExtractionResult(
+						extraction,
+						nbInteractionRepository.findByExtractionIdOrderByIdAsc(extraction.getId()),
+						true
+				));
 	}
 
 	private NbExtractionResult extractWithRetry(

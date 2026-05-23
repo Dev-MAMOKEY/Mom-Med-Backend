@@ -226,7 +226,7 @@ class SafetyJudgeServiceTest {
 				ingredientNorm,
 				ingredientNorm,
 				null,
-				null,
+				"NB fixture text",
 				null,
 				null,
 				null

@@ -17,7 +17,6 @@ import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
 import mamokey.mom_med.backend.domain.safety.model.SafetyEvidence;
 import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 약 추가 시 전체 안전 판정을 조립하는 MVP 서비스입니다.
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
  * 병용금기가 없을 때만 65세 이상 노인주의를 검사해 WARN/ALLOW를 결정합니다.</p>
  */
 @Service
-@Transactional(readOnly = true)
 public class SafetyJudgeService {
 
 	private final DurRuleEngine durRuleEngine;
@@ -95,6 +93,14 @@ public class SafetyJudgeService {
 	}
 
 	private NbExtractionResult extractNbSafely(DrugMaster drug) {
+		// 약 마스터에 NB_DOC_DATA가 없으면 LLM 추출 자체를 시도할 수 없습니다.
+		// 그래도 이미 검증된 캐시가 있으면 재사용하고, 캐시도 없을 때만 "NB 근거 없음"으로 처리합니다.
+		// 예외를 던져 정상 분기를 표현하면 상위 safety/check 트랜잭션이 rollback-only가 되어 500으로 변할 수 있습니다.
+		if (drug.getNbDocData() == null || drug.getNbDocData().isBlank()) {
+			return nbExtractionService.findVerifiedOptional(drug.getItemSeq())
+					.orElseGet(() -> new NbExtractionResult(null, List.of(), true));
+		}
+
 		try {
 			return nbExtractionService.extract(drug.getItemSeq());
 		}
