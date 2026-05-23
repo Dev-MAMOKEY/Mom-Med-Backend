@@ -180,7 +180,7 @@ public class NbExtractionService {
 					extraction.getItemSeq(),
 					drugName == null ? extraction.getItemSeq() : drugName,
 					partnerKo,
-					DrugNameNormalizer.normalize(partnerKo),
+					normalizedPartner(partnerKo, partnerEn),
 					partnerEn,
 					DrugGroupDictionary.isDrugGroupName(partnerKo),
 					riskLevel,
@@ -229,5 +229,12 @@ public class NbExtractionService {
 		}
 		String text = value.toString();
 		return text.isBlank() ? null : text;
+	}
+
+	private static String normalizedPartner(String partnerKo, String partnerEn) {
+		if (partnerEn != null && !partnerEn.isBlank()) {
+			return DrugNameNormalizer.normalize(partnerEn);
+		}
+		return DrugNameNormalizer.normalize(partnerKo);
 	}
 }

@@ -165,8 +165,7 @@ public class SafetyJudgeService {
 	private SafetyDecision decisionFromNbRisk(String riskLevel) {
 		return switch (riskLevel == null ? "" : riskLevel) {
 			case "동시투여피해야함" -> SafetyDecision.BLOCK;
-			case "권장하지않음" -> SafetyDecision.WARN;
-			case "주의" -> SafetyDecision.INFO;
+			case "권장하지않음", "주의" -> SafetyDecision.WARN;
 			default -> SafetyDecision.ALLOW;
 		};
 	}
