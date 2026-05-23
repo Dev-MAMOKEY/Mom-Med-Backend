@@ -9,7 +9,6 @@ import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
 import mamokey.mom_med.backend.global.exception.CustomException;
 import mamokey.mom_med.backend.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Safety API 요청을 도메인 판정 서비스에 연결하는 application service입니다.
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
  * ref.drugs_master에 없는 ITEM_SEQ는 안전판정 자체가 불가능하므로 404 오류로 반환합니다.</p>
  */
 @Service
-@Transactional(readOnly = true)
 public class SafetyCheckService {
 
 	private final DrugMasterRepository drugMasterRepository;
