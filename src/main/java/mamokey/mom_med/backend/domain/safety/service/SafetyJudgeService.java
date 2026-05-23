@@ -7,6 +7,12 @@ import java.util.Map;
 
 import mamokey.mom_med.backend.domain.drug.entity.DrugMaster;
 import mamokey.mom_med.backend.domain.dur.service.DurRuleEngine;
+import mamokey.mom_med.backend.domain.nb.entity.NbInteraction;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionResult;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionService;
+import mamokey.mom_med.backend.domain.nb.util.DrugGroupDictionary;
+import mamokey.mom_med.backend.global.exception.CustomException;
+import mamokey.mom_med.backend.global.exception.ErrorCode;
 import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
 import mamokey.mom_med.backend.domain.safety.model.SafetyEvidence;
 import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
@@ -25,9 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class SafetyJudgeService {
 
 	private final DurRuleEngine durRuleEngine;
+	private final NbExtractionService nbExtractionService;
 
-	public SafetyJudgeService(DurRuleEngine durRuleEngine) {
+	public SafetyJudgeService(DurRuleEngine durRuleEngine, NbExtractionService nbExtractionService) {
 		this.durRuleEngine = durRuleEngine;
+		this.nbExtractionService = nbExtractionService;
 	}
 
 	public SafetyVerdict judge(List<DrugMaster> currentDrugs, DrugMaster newDrug, int age) {
@@ -45,11 +53,121 @@ public class SafetyJudgeService {
 			return new SafetyVerdict(SafetyDecision.BLOCK, new ArrayList<>(combinationEvidences.values()));
 		}
 
-		List<SafetyEvidence> elderlyEvidences = durRuleEngine.checkElderly(newDrug, age);
-		if (!elderlyEvidences.isEmpty()) {
-			return new SafetyVerdict(SafetyDecision.WARN, elderlyEvidences);
+		Map<String, SafetyEvidence> evidences = new LinkedHashMap<>();
+		for (SafetyEvidence evidence : durRuleEngine.checkElderly(newDrug, age)) {
+			evidences.putIfAbsent(evidence.dedupeKey(), evidence);
+		}
+		for (SafetyEvidence evidence : checkNbBidirectionally(currentDrugs, newDrug)) {
+			evidences.putIfAbsent(evidence.dedupeKey(), evidence);
 		}
 
-		return new SafetyVerdict(SafetyDecision.ALLOW, List.of());
+		return new SafetyVerdict(decide(evidences.values().stream().toList()), new ArrayList<>(evidences.values()));
+	}
+
+	/**
+	 * 새 약의 NB와 기존 약들의 NB를 모두 확인합니다.
+	 *
+	 * <p>NB 문서는 "이 약이 상대 약을 조심하라"고 쓰일 수도 있고, 기존 약 문서가 새 약을 조심하라고
+	 * 쓸 수도 있습니다. 따라서 새 약 → 기존 약, 기존 약 → 새 약 양방향을 모두 확인해야 DUR 누락분을 회수할 수 있습니다.</p>
+	 */
+	private List<SafetyEvidence> checkNbBidirectionally(List<DrugMaster> currentDrugs, DrugMaster newDrug) {
+		List<SafetyEvidence> evidences = new ArrayList<>();
+
+		NbExtractionResult newDrugExtraction = extractNbSafely(newDrug);
+		for (NbInteraction interaction : newDrugExtraction.interactions()) {
+			for (DrugMaster currentDrug : currentDrugs) {
+				if (matchesNbPartner(interaction, currentDrug)) {
+					toEvidence(interaction, newDrug, currentDrug).ifPresent(evidences::add);
+				}
+			}
+		}
+
+		for (DrugMaster currentDrug : currentDrugs) {
+			NbExtractionResult currentDrugExtraction = extractNbSafely(currentDrug);
+			for (NbInteraction interaction : currentDrugExtraction.interactions()) {
+				if (matchesNbPartner(interaction, newDrug)) {
+					toEvidence(interaction, currentDrug, newDrug).ifPresent(evidences::add);
+				}
+			}
+		}
+
+		return evidences;
+	}
+
+	private NbExtractionResult extractNbSafely(DrugMaster drug) {
+		try {
+			return nbExtractionService.extract(drug.getItemSeq());
+		}
+		catch (CustomException exception) {
+			// 약 마스터에 NB_DOC_DATA가 아직 없는 개발/테스트 데이터는 NB 근거 없음으로 취급합니다.
+			// 실제 Slice 01 데이터가 채워지면 이 경로를 타지 않고 캐시/LLM 추출을 수행합니다.
+			if (exception.getErrorCode() == ErrorCode.INVALID_INPUT || exception.getErrorCode() == ErrorCode.NOT_FOUND) {
+				return new NbExtractionResult(null, List.of(), true);
+			}
+			throw exception;
+		}
+	}
+
+	private boolean matchesNbPartner(NbInteraction interaction, DrugMaster drug) {
+		if (interaction.isDrugGroup()) {
+			String atcCode = drug.getAtcCode();
+			if (atcCode == null || atcCode.isBlank()) {
+				return false;
+			}
+			return DrugGroupDictionary.prefixesFor(interaction.getPartnerDrugKo()).stream()
+					.anyMatch(atcCode::startsWith);
+		}
+		return interaction.getPartnerDrugNorm() != null
+				&& interaction.getPartnerDrugNorm().equals(drug.getMainIngrNorm());
+	}
+
+	private java.util.Optional<SafetyEvidence> toEvidence(
+			NbInteraction interaction,
+			DrugMaster sourceDrug,
+			DrugMaster matchedDrug
+	) {
+		SafetyDecision decision = decisionFromNbRisk(interaction.getRiskLevel());
+		if (decision == SafetyDecision.ALLOW) {
+			return java.util.Optional.empty();
+		}
+
+		return java.util.Optional.of(new SafetyEvidence(
+				"NB",
+				"NB",
+				sourceDrug.getMainIngrNorm(),
+				matchedDrug.getMainIngrNorm(),
+				interaction.getReasonSummary(),
+				null,
+				null,
+				interaction.getRiskLevel(),
+				interaction.getPartnerDrugKo(),
+				interaction.getSourceQuote(),
+				sourceDrug.getItemSeq()
+		));
+	}
+
+	private SafetyDecision decide(List<SafetyEvidence> evidences) {
+		if (evidences.stream().anyMatch(evidence -> evidence.riskLevel() != null
+				&& decisionFromNbRisk(evidence.riskLevel()) == SafetyDecision.BLOCK)) {
+			return SafetyDecision.BLOCK;
+		}
+		if (evidences.stream().anyMatch(evidence -> "노인주의".equals(evidence.type())
+				|| (evidence.riskLevel() != null && decisionFromNbRisk(evidence.riskLevel()) == SafetyDecision.WARN))) {
+			return SafetyDecision.WARN;
+		}
+		if (evidences.stream().anyMatch(evidence -> evidence.riskLevel() != null
+				&& decisionFromNbRisk(evidence.riskLevel()) == SafetyDecision.INFO)) {
+			return SafetyDecision.INFO;
+		}
+		return SafetyDecision.ALLOW;
+	}
+
+	private SafetyDecision decisionFromNbRisk(String riskLevel) {
+		return switch (riskLevel == null ? "" : riskLevel) {
+			case "동시투여피해야함" -> SafetyDecision.BLOCK;
+			case "권장하지않음" -> SafetyDecision.WARN;
+			case "주의" -> SafetyDecision.INFO;
+			default -> SafetyDecision.ALLOW;
+		};
 	}
 }

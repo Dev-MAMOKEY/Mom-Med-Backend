@@ -18,6 +18,8 @@ import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRep
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
 import mamokey.mom_med.backend.domain.dur.service.DurRuleEngine;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionResult;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionService;
 import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
 import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +50,9 @@ class SafetyJudgeServiceTest {
 	@Mock
 	DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository;
 
+	@Mock
+	NbExtractionService nbExtractionService;
+
 	SafetyJudgeService safetyJudgeService;
 
 	@BeforeEach
@@ -61,7 +66,9 @@ class SafetyJudgeServiceTest {
 				elderlyCautionRepository,
 				elderlyNsaidCautionRepository
 		);
-		safetyJudgeService = new SafetyJudgeService(durRuleEngine);
+		lenient().when(nbExtractionService.extract(anyString()))
+				.thenReturn(new NbExtractionResult(null, List.of(), true));
+		safetyJudgeService = new SafetyJudgeService(durRuleEngine, nbExtractionService);
 	}
 
 	@Test
