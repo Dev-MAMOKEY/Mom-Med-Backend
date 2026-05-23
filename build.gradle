@@ -46,8 +46,9 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// Spring Boot 테스트: ApplicationContext, MVC, 슬라이스 테스트 도구 모음입니다.
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Spring Boot 테스트: validation, MVC, ApplicationContext 검증에 필요한 테스트 도구입니다.
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 
 	// Testcontainers: 실제 PostgreSQL 컨테이너를 띄워 통합 테스트할 때 사용합니다.
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.6')

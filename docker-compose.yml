@@ -16,10 +16,12 @@ services:
 
     environment:
       # Docker 컨테이너 내부에 생성할 DB 이름입니다.
-      POSTGRES_DB: ${POSTGRES_DB:-mom-med}
-      # 애플리케이션에서 쓰는 DB_USER/DB_PASSWORD와 같은 값을 사용해 계정 혼선을 줄입니다.
-      POSTGRES_USER: ${DB_USER:?DB_USER must be set in .env}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      # .env의 POSTGRES_DB=mom_med 값을 그대로 사용해 psql 접속 DB와 Flyway 적용 DB를 일치시킵니다.
+      POSTGRES_DB: ${POSTGRES_DB:-mom_med}
+      # Docker Compose는 POSTGRES_USER/POSTGRES_PASSWORD를 기준으로 DB 계정을 생성합니다.
+      # Spring Boot도 application.yml에서 같은 변수명을 우선 사용하므로 계정 혼선을 줄일 수 있습니다.
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       TZ: Asia/Seoul
 
     volumes:
@@ -34,6 +36,27 @@ services:
       retries: 5
       start_period: 10s
 
+  redis:
+    # Redis는 Slice 04의 rate limit, Slice 07의 분산 락, 이후 캐시 계층에서 공통으로 사용하는 인프라입니다.
+    # 지금 당장 Slice 01 비즈니스 로직이 Redis를 직접 쓰지는 않지만, Redisson 자동 설정이 있으므로
+    # 로컬에서 Spring Boot를 정상 기동하려면 PostgreSQL과 함께 Redis도 떠 있어야 합니다.
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
 volumes:
   # PostgreSQL 데이터 파일을 보관하는 Docker named volume입니다.
   postgres_data:
+  # Redis AOF/개발 캐시 데이터를 보존하는 Docker named volume입니다.
+  redis_data:

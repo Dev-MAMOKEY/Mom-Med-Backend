@@ -12,22 +12,25 @@ docker compose up -d
 docker ps
 ```
 
-로컬에 직접 설치한 PostgreSQL을 사용한다면 `.env`에는 애플리케이션 접속용 값을 아래처럼 둡니다.
+Docker Compose PostgreSQL을 사용할 때 `.env`에는 컨테이너 생성값과 Spring Boot 접속 URL을 같은 DB로 맞춥니다.
 
 ```env
-DB_URL=jdbc:postgresql://localhost:5432/mom-med
-DB_USER=postgres
-DB_PASSWORD=your-local-password
+POSTGRES_DB=mom_med
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-local-password
+POSTGRES_PORT=15432
+DATABASE_URL=jdbc:postgresql://127.0.0.1:15432/mom_med
+REDIS_URL=redis://localhost:6379
 ```
 
-Docker Compose PostgreSQL을 사용할 때 로컬 `5432` 포트가 이미 사용 중이면 컨테이너 포트와 JDBC URL을 함께 바꿉니다.
+로컬 `5432` 포트가 이미 사용 중이면 `POSTGRES_PORT`와 `DATABASE_URL`의 포트를 함께 바꿉니다.
 
 ```env
 POSTGRES_PORT=15432
-POSTGRES_DB=mom-med
-DB_URL=jdbc:postgresql://127.0.0.1:15432/mom-med
-DB_USER=postgres
-DB_PASSWORD=your-local-password
+POSTGRES_DB=mom_med
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-local-password
+DATABASE_URL=jdbc:postgresql://127.0.0.1:15432/mom_med
 ```
 
 Spring Boot를 migration smoke 용도로 한 번만 기동합니다.
