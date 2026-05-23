@@ -1,0 +1,255 @@
+package mamokey.mom_med.backend.infra.etl.dur;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
+
+import mamokey.mom_med.backend.global.util.DrugNameNormalizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * HIRA DUR CSV를 PostgreSQL {@code ref} schema로 적재하는 로더입니다.
+ *
+ * <p>CSV 원본은 cp949 인코딩이며, 성분명은 저장 전에 {@link DrugNameNormalizer}로 정규화합니다.
+ * 이후 DURRuleEngine은 정규화 컬럼만 사용해 {@code =} 정확 매칭을 수행하므로,
+ * ETL 단계에서 정규화 값을 함께 저장하는 것이 핵심입니다.</p>
+ */
+@Component
+@ConditionalOnBean(JdbcTemplate.class)
+public class DurCsvLoader {
+
+	private static final Logger log = LoggerFactory.getLogger(DurCsvLoader.class);
+	private static final Charset CP949 = Charset.forName("CP949");
+	private static final int BATCH_SIZE = 1_000;
+
+	private final JdbcTemplate jdbcTemplate;
+	private final Path comboPath;
+	private final Path elderlyPath;
+	private final Path elderlyNsaidPath;
+
+	public DurCsvLoader(
+			JdbcTemplate jdbcTemplate,
+			@Value("${app.etl.dur.combo-path:data/_downloads/11983_ex/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv}") String comboPath,
+			@Value("${app.etl.dur.elderly-path:data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_노인주의 품목리스트 2025.6.csv}") String elderlyPath,
+			@Value("${app.etl.dur.elderly-nsaid-path:data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_노인주의(해열진통소염제) 품목리스트 2025.6.csv}") String elderlyNsaidPath
+	) {
+		this.jdbcTemplate = jdbcTemplate;
+		this.comboPath = resolvePath(Path.of(comboPath), Path.of(
+				"data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv"));
+		this.elderlyPath = Path.of(elderlyPath);
+		this.elderlyNsaidPath = Path.of(elderlyNsaidPath);
+	}
+
+	/**
+	 * 병용금기, 노인주의, NSAID 노인주의 CSV를 순서대로 적재합니다.
+	 */
+	@Transactional
+	public void loadDefaults() {
+		loadCombo(comboPath);
+		loadElderly(elderlyPath);
+		loadElderlyNsaid(elderlyNsaidPath);
+	}
+
+	public int loadCombo(Path path) {
+		String sql = """
+				INSERT INTO ref.dur_combo_contraindications (
+				  source_row_hash,
+				  ingredient_name_a, ingredient_norm_a, ingredient_code_a, product_code_a, product_name_a, company_name_a, reimbursement_a,
+				  ingredient_name_b, ingredient_norm_b, ingredient_code_b, product_code_b, product_name_b, company_name_b, reimbursement_b,
+				  gazette_no, gazette_date, detail, note
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (source_row_hash) DO NOTHING
+				""";
+
+		return load(path, "dur-combo", (header, row) -> {
+			String ingredientA = value(header, row, "성분명A");
+			String ingredientB = value(header, row, "성분명B");
+			String normA = DrugNameNormalizer.normalize(ingredientA);
+			String normB = DrugNameNormalizer.normalize(ingredientB);
+			if (isBlank(normA) || isBlank(normB)) {
+				return null;
+			}
+
+			// CSV 컬럼 A/B는 병용금기 약쌍의 양쪽 성분과 제품 정보를 의미합니다.
+			// DB에는 원본 성분명과 정규화 성분명을 모두 저장하고, 안전 판정 조회는 정규화 컬럼만 사용합니다.
+			return new Object[] {
+					sha256("combo", row),
+					ingredientA, normA, value(header, row, "성분코드A"), value(header, row, "제품코드A"),
+					value(header, row, "제품명A"), value(header, row, "업체명A"), value(header, row, "급여여부A"),
+					ingredientB, normB, value(header, row, "성분코드B"), value(header, row, "제품코드B"),
+					value(header, row, "제품명B"), value(header, row, "업체명B"), value(header, row, "급여여부B"),
+					value(header, row, "고시번호"), sqlDate(value(header, row, "고시일자")),
+					value(header, row, "상세정보"), value(header, row, "비고")
+			};
+		}, sql);
+	}
+
+	public int loadElderly(Path path) {
+		String sql = """
+				INSERT INTO ref.dur_elderly_caution (
+				  source_row_hash, ingredient_name, ingredient_norm, ingredient_code, product_code, product_name,
+				  company_name, gazette_date, gazette_no, detail, note, reimbursement
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (source_row_hash) DO NOTHING
+				""";
+
+		return load(path, "dur-elderly", (header, row) -> {
+			String ingredient = value(header, row, "성분명");
+			String norm = DrugNameNormalizer.normalize(ingredient);
+			if (isBlank(norm)) {
+				return null;
+			}
+			return new Object[] {
+					sha256("elderly", row),
+					ingredient, norm, value(header, row, "성분코드"), value(header, row, "제품코드"),
+					value(header, row, "제품명"), value(header, row, "업소명"), sqlDate(value(header, row, "공고일자")),
+					value(header, row, "공고번호"), value(header, row, "약품상세정보"),
+					value(header, row, "비고"), value(header, row, "급여여부")
+			};
+		}, sql);
+	}
+
+	public int loadElderlyNsaid(Path path) {
+		String sql = """
+				INSERT INTO ref.dur_elderly_nsaid_caution (
+				  source_row_hash, ingredient_name, ingredient_norm, ingredient_code, product_code, product_name,
+				  company_name, detail, reimbursement
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (source_row_hash) DO NOTHING
+				""";
+
+		return load(path, "dur-elderly-nsaid", (header, row) -> {
+			String ingredient = value(header, row, "성분명");
+			String norm = DrugNameNormalizer.normalize(ingredient);
+			if (isBlank(norm)) {
+				return null;
+			}
+			return new Object[] {
+					sha256("elderly-nsaid", row),
+					ingredient, norm, value(header, row, "성분코드"), value(header, row, "제품코드"),
+					value(header, row, "제품명"), value(header, row, "업소명"),
+					value(header, row, "약품상세정보"), value(header, row, "급여여부")
+			};
+		}, sql);
+	}
+
+	private int load(Path path, String sourceName, RowMapper rowMapper, String sql) {
+		if (!Files.exists(path)) {
+			log.warn("DUR CSV file not found. source={}, path={}", sourceName, path.toAbsolutePath());
+			return 0;
+		}
+
+		int insertedRows = 0;
+		List<Object[]> batch = new ArrayList<>(BATCH_SIZE);
+		try (BufferedReader reader = Files.newBufferedReader(path, CP949)) {
+			Map<String, Integer> header = header(CsvRowParser.parse(reader.readLine()));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				Object[] values = rowMapper.map(header, CsvRowParser.parse(line));
+				if (values == null) {
+					continue;
+				}
+				batch.add(values);
+				if (batch.size() == BATCH_SIZE) {
+					insertedRows += flush(sql, batch);
+				}
+			}
+			insertedRows += flush(sql, batch);
+			log.info("DUR CSV load completed. source={}, insertedRows={}", sourceName, insertedRows);
+			return insertedRows;
+		}
+		catch (IOException exception) {
+			log.error("DUR CSV load failed. source={}, path={}", sourceName, path.toAbsolutePath(), exception);
+			throw new IllegalStateException("DUR CSV load failed: " + sourceName, exception);
+		}
+	}
+
+	private int flush(String sql, List<Object[]> batch) {
+		if (batch.isEmpty()) {
+			return 0;
+		}
+		int[] results = jdbcTemplate.batchUpdate(sql, batch);
+		batch.clear();
+		int affectedRows = 0;
+		for (int result : results) {
+			if (result > 0) {
+				affectedRows += result;
+			}
+		}
+		return affectedRows;
+	}
+
+	private static Map<String, Integer> header(List<String> columns) {
+		Map<String, Integer> header = new HashMap<>();
+		for (int index = 0; index < columns.size(); index++) {
+			header.put(columns.get(index).strip(), index);
+		}
+		return header;
+	}
+
+	private static String value(Map<String, Integer> header, List<String> row, String column) {
+		Integer index = header.get(column);
+		if (index == null || index >= row.size()) {
+			return null;
+		}
+		String value = row.get(index);
+		return isBlank(value) ? null : value.strip();
+	}
+
+	private static Date sqlDate(String value) {
+		if (isBlank(value)) {
+			return null;
+		}
+		try {
+			return Date.valueOf(LocalDate.parse(value.strip()));
+		}
+		catch (DateTimeParseException exception) {
+			return null;
+		}
+	}
+
+	private static boolean isBlank(String value) {
+		return value == null || value.isBlank();
+	}
+
+	private static Path resolvePath(Path primary, Path fallback) {
+		return Files.exists(primary) ? primary : fallback;
+	}
+
+	private static String sha256(String sourceName, List<String> row) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			StringJoiner joiner = new StringJoiner("|", sourceName + "|", "");
+			row.forEach(value -> joiner.add(value == null ? "" : value));
+			byte[] hash = digest.digest(joiner.toString().getBytes(CP949));
+			return String.format("%064x", new BigInteger(1, hash));
+		}
+		catch (NoSuchAlgorithmException exception) {
+			throw new IllegalStateException("SHA-256 is not available", exception);
+		}
+	}
+
+	@FunctionalInterface
+	private interface RowMapper {
+		Object[] map(Map<String, Integer> header, List<String> row);
+	}
+}

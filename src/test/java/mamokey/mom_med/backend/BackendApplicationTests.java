@@ -2,6 +2,9 @@ package mamokey.mom_med.backend;
 
 import mamokey.mom_med.backend.domain.drug.repository.DrugMasterRepository;
 import mamokey.mom_med.backend.domain.drug.repository.PillVisualRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
 import mamokey.mom_med.backend.external.mfds.MfdsClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +29,15 @@ class BackendApplicationTests {
 
 	@MockitoBean
 	PillVisualRepository pillVisualRepository;
+
+	@MockitoBean
+	DurComboContraindicationRepository durComboContraindicationRepository;
+
+	@MockitoBean
+	DurElderlyCautionRepository durElderlyCautionRepository;
+
+	@MockitoBean
+	DurElderlyNsaidCautionRepository durElderlyNsaidCautionRepository;
 
 	@MockitoBean
 	MfdsClient mfdsClient;

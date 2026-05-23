@@ -1,0 +1,38 @@
+package mamokey.mom_med.backend.domain.safety.model;
+
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * 약물 안전 판정의 근거를 표현하는 공통 record입니다.
+ *
+ * <p>Slice 02에서는 DUR 병용금기와 노인주의 근거를 담고, Slice 03 이후 NB/알레르기 근거가
+ * 추가되어도 같은 응답 구조로 확장할 수 있습니다. JSON 필드는 프론트 합의 형태에 맞춰
+ * snake_case로 직렬화합니다.</p>
+ */
+public record SafetyEvidence(
+		String source,
+		String type,
+		@JsonProperty("ingredient_a")
+		String ingredientA,
+		@JsonProperty("ingredient_b")
+		String ingredientB,
+		String reason,
+		@JsonProperty("gazette_no")
+		String gazetteNo,
+		@JsonProperty("gazette_date")
+		LocalDate gazetteDate
+) {
+
+	public String dedupeKey() {
+		String left = ingredientA == null ? "" : ingredientA;
+		String right = ingredientB == null ? "" : ingredientB;
+		if (right.isBlank()) {
+			return source + "|" + type + "|" + left;
+		}
+		return left.compareTo(right) <= 0
+				? source + "|" + type + "|" + left + "|" + right
+				: source + "|" + type + "|" + right + "|" + left;
+	}
+}
