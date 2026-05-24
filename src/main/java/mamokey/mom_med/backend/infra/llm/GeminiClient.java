@@ -1,6 +1,7 @@
 package mamokey.mom_med.backend.infra.llm;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +69,16 @@ public class GeminiClient {
 	}
 
 	/**
+	 * Slice 03 NB 추출용 JSON mode 호출입니다.
+	 *
+	 * <p>NB 추출은 회귀 재현성이 중요하므로 temperature를 낮게 고정합니다.
+	 * 일반 call 메서드는 기존 Slice 00 호환성을 위해 temperature를 보내지 않습니다.</p>
+	 */
+	public LLMResponse callJsonExtraction(String prompt, String promptVersion) {
+		return call(prompt, defaultModel, true, DEFAULT_MAX_OUTPUT_TOKENS, promptVersion, 0.1);
+	}
+
+	/**
 	 * Gemini generateContent API를 호출하고 프로젝트 공통 응답 형식으로 변환합니다.
 	 *
 	 * <p>요청 body는 Google API 규격에 맞춰 contents와 generationConfig로 구성합니다.
@@ -80,6 +91,17 @@ public class GeminiClient {
 			int maxOutputTokens,
 			String promptVersion
 	) {
+		return call(prompt, model, jsonMode, maxOutputTokens, promptVersion, null);
+	}
+
+	public LLMResponse call(
+			String prompt,
+			String model,
+			boolean jsonMode,
+			int maxOutputTokens,
+			String promptVersion,
+			Double temperature
+	) {
 		if (apiKey == null || apiKey.isBlank()) {
 			throw new GeminiClientException("Gemini API key is required. Set GEMINI_API_KEY.");
 		}
@@ -87,14 +109,18 @@ public class GeminiClient {
 			throw new GeminiClientException("Gemini prompt must not be blank.");
 		}
 
+		Map<String, Object> generationConfig = new LinkedHashMap<>();
+		generationConfig.put("responseMimeType", jsonMode ? "application/json" : "text/plain");
+		generationConfig.put("maxOutputTokens", maxOutputTokens);
+		if (temperature != null) {
+			generationConfig.put("temperature", temperature);
+		}
+
 		Map<String, Object> request = Map.of(
 				"contents", List.of(Map.of(
 						"parts", List.of(Map.of("text", prompt))
 				)),
-				"generationConfig", Map.of(
-						"responseMimeType", jsonMode ? "application/json" : "text/plain",
-						"maxOutputTokens", maxOutputTokens
-				)
+				"generationConfig", generationConfig
 		);
 
 		GeminiGenerateContentResponse response = executeWithSingleRetry(model, request);

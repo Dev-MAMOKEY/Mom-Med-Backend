@@ -9,5 +9,6 @@ package mamokey.mom_med.backend.domain.safety.model;
 public enum SafetyDecision {
 	BLOCK,
 	WARN,
+	INFO,
 	ALLOW
 }
