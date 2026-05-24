@@ -73,6 +73,47 @@ public class DrugIdentifyService {
 	}
 
 	/**
+	 * ITEM_SEQ로 DrugMaster를 조회하고, 캐시에 없으면 식약처 상세 API에서 가져와 저장합니다.
+	 *
+	 * <p>identify()가 후보 목록(300)을 반환할 때는 캐싱이 되지 않으므로,
+	 * 사용자가 후보 중 하나를 선택해 약장에 추가할 때 이 메서드로 자동 캐싱합니다.</p>
+	 *
+	 * @throws mamokey.mom_med.backend.global.exception.CustomException DRUG_NOT_FOUND — 식약처에도 없는 코드
+	 */
+	@Transactional
+	public DrugMaster fetchByItemSeq(String itemSeq) {
+		return drugMasterRepository.findById(itemSeq)
+				.orElseGet(() -> fetchAndCacheFromMfds(itemSeq));
+	}
+
+	private DrugMaster fetchAndCacheFromMfds(String itemSeq) {
+		MfdsDrugDetailItem detail = mfdsClient.getDrugDetail(itemSeq); // 없으면 DRUG_NOT_FOUND
+		DrugMaster drugMaster = drugMasterRepository.findById(itemSeq)
+				.orElseGet(() -> DrugMaster.create(itemSeq));
+
+		String mainIngrEn = trimToNull(detail.mainIngrEng());
+		drugMaster.refresh(new DrugMaster.DrugMasterRefreshValues(
+				firstNonBlank(detail.itemName(), ""),
+				trimToNull(detail.itemNameEng()),
+				firstNonBlank(detail.entpName(), ""),
+				trimToNull(detail.entpNo()),
+				parseDate(detail.itemPermitDate()),
+				trimToNull(detail.specialtyType()),
+				trimToNull(detail.ediCode()),
+				trimToNull(detail.atcCode()),
+				mainIngrEn,
+				DrugNameNormalizer.normalize(mainIngrEn),
+				trimToNull(detail.chart()),
+				trimToNull(detail.nbDocData()),
+				trimToNull(detail.eeDocData()),
+				trimToNull(detail.udDocData()),
+				parseDate(detail.changeDate())
+		), clock);
+
+		return drugMasterRepository.save(drugMaster);
+	}
+
+	/**
 	 * 사용자 입력 약 이름을 식약처 ITEM_SEQ 기준으로 식별합니다.
 	 *
 	 * <p>같은 제품명을 다시 조회하면 DB 캐시를 먼저 반환하므로 외부 API 호출 수를 줄일 수 있습니다.

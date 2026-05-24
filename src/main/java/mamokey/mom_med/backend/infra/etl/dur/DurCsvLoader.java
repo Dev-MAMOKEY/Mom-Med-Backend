@@ -21,7 +21,6 @@ import mamokey.mom_med.backend.global.util.DrugNameNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
  * ETL 단계에서 정규화 값을 함께 저장하는 것이 핵심입니다.</p>
  */
 @Component
-@ConditionalOnBean(JdbcTemplate.class)
 public class DurCsvLoader {
 
 	private static final Logger log = LoggerFactory.getLogger(DurCsvLoader.class);
