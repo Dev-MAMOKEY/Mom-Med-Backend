@@ -43,28 +43,36 @@ public class DurCsvLoader {
 	private final Path comboPath;
 	private final Path elderlyPath;
 	private final Path elderlyNsaidPath;
+	private final Path agePath;
+	private final Path pregnancyPath;
 
 	public DurCsvLoader(
 			JdbcTemplate jdbcTemplate,
 			@Value("${app.etl.dur.combo-path:data/_downloads/11983_ex/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv}") String comboPath,
 			@Value("${app.etl.dur.elderly-path:data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_노인주의 품목리스트 2025.6.csv}") String elderlyPath,
-			@Value("${app.etl.dur.elderly-nsaid-path:data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_노인주의(해열진통소염제) 품목리스트 2025.6.csv}") String elderlyNsaidPath
+			@Value("${app.etl.dur.elderly-nsaid-path:data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_노인주의(해열진통소염제) 품목리스트 2025.6.csv}") String elderlyNsaidPath,
+			@Value("${app.etl.dur.age-path:drug_csv/의약품안전사용서비스(DUR)_연령금기 품목리스트 2025.6.csv}") String agePath,
+			@Value("${app.etl.dur.pregnancy-path:drug_csv/의약품안전사용서비스(DUR)_임부금기 품목리스트 2025.6.csv}") String pregnancyPath
 	) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.comboPath = resolvePath(Path.of(comboPath), Path.of(
 				"data/건강보험심사평가원_의약품안전사용서비스(DUR) 의약품 목록_20250601/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv"));
 		this.elderlyPath = Path.of(elderlyPath);
 		this.elderlyNsaidPath = Path.of(elderlyNsaidPath);
+		this.agePath = Path.of(agePath);
+		this.pregnancyPath = Path.of(pregnancyPath);
 	}
 
 	/**
-	 * 병용금기, 노인주의, NSAID 노인주의 CSV를 순서대로 적재합니다.
+	 * 병용금기, 노인주의, NSAID 노인주의, 연령금기, 임부금기 CSV를 순서대로 적재합니다.
 	 */
 	@Transactional
 	public void loadDefaults() {
 		loadCombo(comboPath);
 		loadElderly(elderlyPath);
 		loadElderlyNsaid(elderlyNsaidPath);
+		loadAge(agePath);
+		loadPregnancy(pregnancyPath);
 	}
 
 	public int loadCombo(Path path) {
@@ -148,6 +156,84 @@ public class DurCsvLoader {
 					value(header, row, "약품상세정보"), value(header, row, "급여여부")
 			};
 		}, sql);
+	}
+
+	public int loadAge(Path path) {
+		String sql = """
+				INSERT INTO ref.dur_age_contraindication (
+				  source_row_hash, ingredient_name, ingredient_norm, ingredient_code, product_code, product_name,
+				  age_limit, gazette_no, gazette_date, detail
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (source_row_hash) DO NOTHING
+				""";
+
+		return load(path, "dur-age", (header, row) -> {
+			String ingredient = value(header, row, "성분명");
+			String norm = DrugNameNormalizer.normalize(ingredient);
+			if (isBlank(norm)) {
+				return null;
+			}
+			// 특정연령 + 특정연령단위 + 연령처리조건을 조합 (예: "12세미만")
+			String ageThreshold = value(header, row, "특정연령");
+			String ageUnit = value(header, row, "특정연령단위");
+			String condition = value(header, row, "연령처리조건");
+			String ageLimit = buildAgeLimit(ageThreshold, ageUnit, condition);
+
+			return new Object[] {
+					sha256("age", row),
+					ingredient, norm,
+					value(header, row, "성분코드"),
+					value(header, row, "제품코드"),
+					value(header, row, "제품명"),
+					ageLimit,
+					value(header, row, "고시번호"),
+					sqlDate(value(header, row, "고시일자")),
+					value(header, row, "약품상세정보")
+			};
+		}, sql);
+	}
+
+	public int loadPregnancy(Path path) {
+		String sql = """
+				INSERT INTO ref.dur_pregnancy_contraindication (
+				  source_row_hash, ingredient_name, ingredient_norm, ingredient_code, product_code, product_name,
+				  pregnancy_grade, gazette_no, gazette_date, detail
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (source_row_hash) DO NOTHING
+				""";
+
+		return load(path, "dur-pregnancy", (header, row) -> {
+			String ingredient = value(header, row, "성분명");
+			String norm = DrugNameNormalizer.normalize(ingredient);
+			if (isBlank(norm)) {
+				return null;
+			}
+			return new Object[] {
+					sha256("pregnancy", row),
+					ingredient, norm,
+					value(header, row, "성분코드"),
+					value(header, row, "제품코드"),
+					value(header, row, "제품명"),
+					value(header, row, "임부금기등급"),
+					value(header, row, "고시번호"),
+					sqlDate(value(header, row, "고시일자")),
+					value(header, row, "약품상세정보")
+			};
+		}, sql);
+	}
+
+	private static String buildAgeLimit(String threshold, String unit, String condition) {
+		if (isBlank(threshold)) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder(threshold.strip());
+		if (!isBlank(unit)) {
+			sb.append(unit.strip());
+		}
+		if (!isBlank(condition)) {
+			sb.append(condition.strip());
+		}
+		return sb.toString();
 	}
 
 	private int load(Path path, String sourceName, RowMapper rowMapper, String sql) {

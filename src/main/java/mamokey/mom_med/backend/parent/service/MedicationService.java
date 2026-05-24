@@ -95,7 +95,7 @@ public class MedicationService {
                 .toList();
         List<DrugMaster> currentDrugs = drugMasterRepository.findAllById(activeItemSeqs);
 
-        SafetyVerdict verdict = safetyJudgeService.judge(currentDrugs, newDrug, age);
+        SafetyVerdict verdict = safetyJudgeService.judge(currentDrugs, newDrug, age, parentId, profile.isPregnant());
 
         // 로그 기록 — BLOCK도 포함, REQUIRES_NEW로 독립 커밋
         safetyCheckLogWriter.record(parentId, req.itemSeq(), verdict);

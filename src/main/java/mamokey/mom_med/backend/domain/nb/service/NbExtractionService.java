@@ -183,11 +183,33 @@ public class NbExtractionService {
 			if (!(row instanceof Map<?, ?> map)) {
 				continue;
 			}
-			String partnerKo = stringValue(map.get("partner_drug_ko"));
-			String partnerEn = stringValue(map.get("partner_drug_en"));
+			String entryType = stringValue(map.get("entry_type"));
 			String riskLevel = stringValue(map.get("risk_level"));
 			String reasonSummary = stringValue(map.get("reason_summary"));
 			String sourceQuote = stringValue(map.get("source_quote"));
+
+			// patient_class entry (Slice 05 확장)
+			if (NbInteraction.ENTRY_TYPE_PATIENT_CLASS.equals(entryType)) {
+				String patientClassText = stringValue(map.get("patient_class_text"));
+				String patientClassKcd = stringValue(map.get("patient_class_kcd"));
+				if (patientClassText != null && riskLevel != null) {
+					interactions.add(NbInteraction.patientClass(
+							extraction.getId(),
+							extraction.getItemSeq(),
+							drugName == null ? extraction.getItemSeq() : drugName,
+							patientClassText,
+							patientClassKcd,
+							riskLevel,
+							reasonSummary,
+							sourceQuote
+					));
+				}
+				continue;
+			}
+
+			// drug_drug entry (기본값: entry_type 없거나 "drug_drug")
+			String partnerKo = stringValue(map.get("partner_drug_ko"));
+			String partnerEn = stringValue(map.get("partner_drug_en"));
 			if (partnerKo == null || riskLevel == null) {
 				continue;
 			}

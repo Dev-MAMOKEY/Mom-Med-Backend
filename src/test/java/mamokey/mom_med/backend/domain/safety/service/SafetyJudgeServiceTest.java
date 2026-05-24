@@ -14,13 +14,18 @@ import java.util.List;
 import mamokey.mom_med.backend.domain.drug.entity.DrugMaster;
 import mamokey.mom_med.backend.domain.dur.entity.DurComboContraindication;
 import mamokey.mom_med.backend.domain.dur.entity.DurElderlyCaution;
+import mamokey.mom_med.backend.domain.dur.repository.DurAgeContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurPregnancyContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.service.DurRuleEngine;
 import mamokey.mom_med.backend.domain.nb.entity.NbInteraction;
+import mamokey.mom_med.backend.domain.nb.repository.NbInteractionRepository;
 import mamokey.mom_med.backend.domain.nb.service.NbExtractionResult;
 import mamokey.mom_med.backend.domain.nb.service.NbExtractionService;
+import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
+import mamokey.mom_med.backend.parent.repository.PatientConditionRepository;
 import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
 import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +57,22 @@ class SafetyJudgeServiceTest {
 	DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository;
 
 	@Mock
+	DurAgeContraindicationRepository ageContraindicationRepository;
+
+	@Mock
+	DurPregnancyContraindicationRepository pregnancyContraindicationRepository;
+
+	@Mock
 	NbExtractionService nbExtractionService;
+
+	@Mock
+	NbInteractionRepository nbInteractionRepository;
+
+	@Mock
+	PatientConditionRepository patientConditionRepository;
+
+	@Mock
+	PatientAllergyRepository patientAllergyRepository;
 
 	SafetyJudgeService safetyJudgeService;
 
@@ -61,15 +81,25 @@ class SafetyJudgeServiceTest {
 		lenient().when(comboRepository.findExactPair(anyString(), anyString())).thenReturn(List.of());
 		lenient().when(elderlyCautionRepository.findByIngredientNorm(anyString())).thenReturn(List.of());
 		lenient().when(elderlyNsaidCautionRepository.findByIngredientNorm(anyString())).thenReturn(List.of());
+		lenient().when(ageContraindicationRepository.findByIngredientNorm(anyString())).thenReturn(List.of());
+		lenient().when(pregnancyContraindicationRepository.findByIngredientNorm(anyString())).thenReturn(List.of());
 
 		DurRuleEngine durRuleEngine = new DurRuleEngine(
 				comboRepository,
 				elderlyCautionRepository,
-				elderlyNsaidCautionRepository
+				elderlyNsaidCautionRepository,
+				ageContraindicationRepository,
+				pregnancyContraindicationRepository
 		);
 		lenient().when(nbExtractionService.extract(anyString()))
 				.thenReturn(new NbExtractionResult(null, List.of(), true));
-		safetyJudgeService = new SafetyJudgeService(durRuleEngine, nbExtractionService);
+		safetyJudgeService = new SafetyJudgeService(
+				durRuleEngine,
+				nbExtractionService,
+				nbInteractionRepository,
+				patientConditionRepository,
+				patientAllergyRepository
+		);
 	}
 
 	@Test
