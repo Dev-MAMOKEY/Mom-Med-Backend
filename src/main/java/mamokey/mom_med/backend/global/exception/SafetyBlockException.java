@@ -6,7 +6,8 @@ import lombok.Getter;
  * 약물 안전 검사(DUR + NB)에서 BLOCK 판정 시 발생.
  * HTTP 409 Conflict 응답.
  *
- * verdict 타입은 Slice 03 SafetyJudgeService 완성 후 Verdict 타입으로 교체.
+ * <p>verdict는 Track B의 {@code Verdict} 또는 Track A의 {@code SafetyVerdict} 모두 허용합니다.
+ * {@link mamokey.mom_med.backend.global.rsdata.BlockErrorResponse}가 Object로 직렬화합니다.</p>
  */
 @Getter
 public class SafetyBlockException extends RuntimeException {

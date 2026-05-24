@@ -25,6 +25,9 @@ public enum ErrorCode {
     // 알레르기 (Slice 04)
     ALLERGY_NOT_FOUND(HttpStatus.NOT_FOUND, "알레르기 정보를 찾을 수 없습니다."),
 
+    // 약장 (Slice 04)
+    MEDICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "복용 약 정보를 찾을 수 없습니다."),
+
     // 기저질환 (Slice 05)
     DISEASE_NOT_FOUND(HttpStatus.NOT_FOUND, "질병 코드를 찾을 수 없습니다."),
     CONDITION_NOT_FOUND(HttpStatus.NOT_FOUND, "기저질환 정보를 찾을 수 없습니다."),

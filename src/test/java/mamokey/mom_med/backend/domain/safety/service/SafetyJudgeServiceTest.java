@@ -18,6 +18,9 @@ import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRep
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
 import mamokey.mom_med.backend.domain.dur.service.DurRuleEngine;
+import mamokey.mom_med.backend.domain.nb.entity.NbInteraction;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionResult;
+import mamokey.mom_med.backend.domain.nb.service.NbExtractionService;
 import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
 import mamokey.mom_med.backend.domain.safety.model.SafetyVerdict;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +51,9 @@ class SafetyJudgeServiceTest {
 	@Mock
 	DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository;
 
+	@Mock
+	NbExtractionService nbExtractionService;
+
 	SafetyJudgeService safetyJudgeService;
 
 	@BeforeEach
@@ -61,7 +67,9 @@ class SafetyJudgeServiceTest {
 				elderlyCautionRepository,
 				elderlyNsaidCautionRepository
 		);
-		safetyJudgeService = new SafetyJudgeService(durRuleEngine);
+		lenient().when(nbExtractionService.extract(anyString()))
+				.thenReturn(new NbExtractionResult(null, List.of(), true));
+		safetyJudgeService = new SafetyJudgeService(durRuleEngine, nbExtractionService);
 	}
 
 	@Test
@@ -153,6 +161,42 @@ class SafetyJudgeServiceTest {
 		assertThat(verdict.evidences()).hasSize(1);
 	}
 
+	@Test
+	void amlodipineAndSimvastatinWarnsByNbEvenWhenDurAllows() {
+		DrugMaster amlodipine = drug("AMLO001", "amlodipine");
+		DrugMaster simvastatin = drug("SIMV001", "simvastatin");
+		when(nbExtractionService.extract("AMLO001")).thenReturn(new NbExtractionResult(null, List.of(
+				NbInteraction.drugDrug(1L, "AMLO001", "암로디핀", "심바스타틴", "simvastatin",
+						"simvastatin", false, "주의", "심바스타틴 노출 증가", "심바스타틴 원문 quote")
+		), false));
+
+		SafetyVerdict verdict = safetyJudgeService.judge(List.of(amlodipine), simvastatin, 60);
+
+		assertThat(verdict.decision()).isEqualTo(SafetyDecision.WARN);
+		assertThat(verdict.evidences()).singleElement()
+				.satisfies(evidence -> {
+					assertThat(evidence.source()).isEqualTo("NB");
+					assertThat(evidence.riskLevel()).isEqualTo("주의");
+					assertThat(evidence.partnerDrug()).isEqualTo("심바스타틴");
+				});
+	}
+
+	@Test
+	void cyp3a4GroupEntryMatchesAzoleAtcPrefix() {
+		DrugMaster amlodipine = drug("AMLO001", "amlodipine");
+		DrugMaster itraconazole = drug("ITRA001", "itraconazole", "J02AC02");
+		when(nbExtractionService.extract("AMLO001")).thenReturn(new NbExtractionResult(null, List.of(
+				NbInteraction.drugDrug(1L, "AMLO001", "암로디핀", "CYP3A4 저해제", "CYP3A4 저해제",
+						null, true, "주의", "CYP3A4 저해제 주의", "CYP3A4 저해제 원문 quote")
+		), false));
+
+		SafetyVerdict verdict = safetyJudgeService.judge(List.of(amlodipine), itraconazole, 60);
+
+		assertThat(verdict.decision()).isEqualTo(SafetyDecision.WARN);
+		assertThat(verdict.evidences()).singleElement()
+				.satisfies(evidence -> assertThat(evidence.partnerDrug()).isEqualTo("CYP3A4 저해제"));
+	}
+
 	private static DurComboContraindication combo(Long id, String ingredientA, String ingredientB) {
 		return DurComboContraindication.fixture(
 				id,
@@ -165,6 +209,10 @@ class SafetyJudgeServiceTest {
 	}
 
 	private static DrugMaster drug(String itemSeq, String ingredientNorm) {
+		return drug(itemSeq, ingredientNorm, null);
+	}
+
+	private static DrugMaster drug(String itemSeq, String ingredientNorm, String atcCode) {
 		DrugMaster drug = DrugMaster.create(itemSeq);
 		drug.refresh(new DrugMaster.DrugMasterRefreshValues(
 				itemSeq + " name",
@@ -174,11 +222,11 @@ class SafetyJudgeServiceTest {
 				null,
 				"전문의약품",
 				null,
-				null,
+				atcCode,
 				ingredientNorm,
 				ingredientNorm,
 				null,
-				null,
+				"NB fixture text",
 				null,
 				null,
 				null
