@@ -4,14 +4,20 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mamokey.mom_med.backend.domain.drug.entity.DrugMaster;
+import mamokey.mom_med.backend.domain.dur.entity.DurAgeContraindication;
 import mamokey.mom_med.backend.domain.dur.entity.DurComboContraindication;
 import mamokey.mom_med.backend.domain.dur.entity.DurElderlyCaution;
 import mamokey.mom_med.backend.domain.dur.entity.DurElderlyNsaidCaution;
+import mamokey.mom_med.backend.domain.dur.entity.DurPregnancyContraindication;
+import mamokey.mom_med.backend.domain.dur.repository.DurAgeContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurPregnancyContraindicationRepository;
 import mamokey.mom_med.backend.domain.safety.model.SafetyEvidence;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,19 +34,27 @@ import org.springframework.transaction.annotation.Transactional;
 public class DurRuleEngine {
 
 	private static final int ELDERLY_AGE_THRESHOLD = 65;
+	/** age_limit 파싱 패턴: "12세미만", "65세이상", "3개월미만" 형태를 인식합니다. */
+	private static final Pattern AGE_LIMIT_PATTERN = Pattern.compile("(\\d+)(세|개월)(미만|이하|이상|초과)");
 
 	private final DurComboContraindicationRepository comboRepository;
 	private final DurElderlyCautionRepository elderlyCautionRepository;
 	private final DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository;
+	private final DurAgeContraindicationRepository ageContraindicationRepository;
+	private final DurPregnancyContraindicationRepository pregnancyContraindicationRepository;
 
 	public DurRuleEngine(
 			DurComboContraindicationRepository comboRepository,
 			DurElderlyCautionRepository elderlyCautionRepository,
-			DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository
+			DurElderlyNsaidCautionRepository elderlyNsaidCautionRepository,
+			DurAgeContraindicationRepository ageContraindicationRepository,
+			DurPregnancyContraindicationRepository pregnancyContraindicationRepository
 	) {
 		this.comboRepository = comboRepository;
 		this.elderlyCautionRepository = elderlyCautionRepository;
 		this.elderlyNsaidCautionRepository = elderlyNsaidCautionRepository;
+		this.ageContraindicationRepository = ageContraindicationRepository;
+		this.pregnancyContraindicationRepository = pregnancyContraindicationRepository;
 	}
 
 	/**
@@ -115,6 +129,92 @@ public class DurRuleEngine {
 			deduped.putIfAbsent(evidence.dedupeKey(), evidence);
 		}
 		return new ArrayList<>(deduped.values());
+	}
+
+	/**
+	 * DUR 연령금기 CSV를 검사합니다 (Slice 05).
+	 *
+	 * <p>새 약 성분의 연령금기 행을 조회하고, age_limit 문자열을 파싱해 부모 나이가 해당 조건에
+	 * 맞으면 BLOCK evidence를 생성합니다. 예) "12세미만" → 부모 나이 &lt; 12이면 BLOCK.</p>
+	 */
+	public List<SafetyEvidence> checkAgeContraindication(DrugMaster drug, int age) {
+		String ingredient = normalizedIngredient(drug);
+		if (isBlank(ingredient)) {
+			return List.of();
+		}
+
+		Map<String, SafetyEvidence> deduped = new LinkedHashMap<>();
+		for (DurAgeContraindication row : ageContraindicationRepository.findByIngredientNorm(ingredient)) {
+			if (!appliesToAge(row.getAgeLimit(), age)) {
+				continue;
+			}
+			SafetyEvidence evidence = new SafetyEvidence(
+					"DUR",
+					"연령금기",
+					row.getIngredientNorm(),
+					null,
+					firstNotBlank(row.getAgeLimit(), row.getDetail(), "HIRA DUR 연령금기 성분입니다."),
+					row.getGazetteNo(),
+					row.getGazetteDate()
+			);
+			deduped.putIfAbsent(evidence.dedupeKey(), evidence);
+		}
+		return new ArrayList<>(deduped.values());
+	}
+
+	/**
+	 * DUR 임부금기 CSV를 검사합니다 (Slice 05).
+	 *
+	 * <p>is_pregnant=true인 부모에게만 호출합니다. 임부금기 행이 있으면 BLOCK evidence를 생성합니다.</p>
+	 */
+	public List<SafetyEvidence> checkPregnancyContraindication(DrugMaster drug) {
+		String ingredient = normalizedIngredient(drug);
+		if (isBlank(ingredient)) {
+			return List.of();
+		}
+
+		Map<String, SafetyEvidence> deduped = new LinkedHashMap<>();
+		for (DurPregnancyContraindication row : pregnancyContraindicationRepository.findByIngredientNorm(ingredient)) {
+			SafetyEvidence evidence = new SafetyEvidence(
+					"DUR",
+					"임부금기",
+					row.getIngredientNorm(),
+					null,
+					firstNotBlank(row.getDetail(), "HIRA DUR 임부금기 성분입니다."),
+					row.getGazetteNo(),
+					row.getGazetteDate()
+			);
+			deduped.putIfAbsent(evidence.dedupeKey(), evidence);
+		}
+		return new ArrayList<>(deduped.values());
+	}
+
+	/**
+	 * age_limit 문자열이 부모 나이에 해당하는지 판단합니다.
+	 *
+	 * <p>패턴 인식 가능: "12세미만", "18세이하", "65세이상", "3개월미만"
+	 * 파싱 실패 시 안전을 위해 false(미적용)로 처리합니다.</p>
+	 */
+	static boolean appliesToAge(String ageLimit, int parentAge) {
+		if (isBlank(ageLimit)) {
+			return false;
+		}
+		Matcher matcher = AGE_LIMIT_PATTERN.matcher(ageLimit.replaceAll("\\s+", ""));
+		if (!matcher.find()) {
+			return false; // 파싱 불가 → 적용하지 않음
+		}
+		int threshold = Integer.parseInt(matcher.group(1));
+		String unit = matcher.group(2);
+		String condition = matcher.group(3);
+		// 개월 단위를 연 단위로 환산 (소수점 내림)
+		int thresholdYears = "개월".equals(unit) ? threshold / 12 : threshold;
+		return switch (condition) {
+			case "미만" -> parentAge < thresholdYears;
+			case "이하" -> parentAge <= thresholdYears;
+			case "이상" -> parentAge >= thresholdYears;
+			case "초과" -> parentAge > thresholdYears;
+			default -> false;
+		};
 	}
 
 	private static String normalizedIngredient(DrugMaster drug) {

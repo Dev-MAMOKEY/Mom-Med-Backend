@@ -31,6 +31,7 @@ public enum ErrorCode {
     // 기저질환 (Slice 05)
     DISEASE_NOT_FOUND(HttpStatus.NOT_FOUND, "질병 코드를 찾을 수 없습니다."),
     CONDITION_NOT_FOUND(HttpStatus.NOT_FOUND, "기저질환 정보를 찾을 수 없습니다."),
+    DUPLICATE_CONDITION(HttpStatus.CONFLICT, "이미 등록된 기저질환입니다."),
 
     // 응급카드 (Slice 08)
     EMERGENCY_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "응급카드를 찾을 수 없습니다."),

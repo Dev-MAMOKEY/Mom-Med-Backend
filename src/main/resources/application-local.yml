@@ -34,7 +34,10 @@ app:
       combo-path: drug_csv/의약품안전사용서비스(DUR)_병용금기 품목리스트 2025.6.csv
       elderly-path: drug_csv/의약품안전사용서비스(DUR)_노인주의 품목리스트 2025.6.csv
       elderly-nsaid-path: drug_csv/의약품안전사용서비스(DUR)_노인주의(해열진통소염제) 품목리스트 2025.6.csv
+      age-path: drug_csv/의약품안전사용서비스(DUR)_연령금기 품목리스트 2025.6.csv
+      pregnancy-path: drug_csv/의약품안전사용서비스(DUR)_임부금기 품목리스트 2025.6.csv
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

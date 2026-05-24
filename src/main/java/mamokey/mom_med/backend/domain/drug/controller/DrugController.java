@@ -1,5 +1,10 @@
 package mamokey.mom_med.backend.domain.drug.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import mamokey.mom_med.backend.domain.drug.service.DrugIdentifyResult;
 import mamokey.mom_med.backend.domain.drug.service.DrugIdentifyService;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("/v1/drugs")
+@Tag(name = "Drug", description = "약 검색 · 식별 (Slice 01)")
 public class DrugController {
 
 	private final DrugIdentifyService drugIdentifyService;
@@ -34,7 +40,16 @@ public class DrugController {
 	 * <p>결과가 하나로 확정되면 200, 후보가 여러 개면 300, 검색 결과가 없으면 404를 반환합니다.</p>
 	 */
 	@GetMapping("/identify")
-	public ResponseEntity<?> identify(@RequestParam("name") @NotBlank String name) {
+	@Operation(summary = "약 이름으로 품목기준코드(itemSeq) 식별",
+	           description = "결과 1개: 200, 동명이품 여러 개: 300 (후보 목록), 없음: 404")
+	@ApiResponses({
+	        @ApiResponse(responseCode = "200", description = "단일 약 식별 성공"),
+	        @ApiResponse(responseCode = "300", description = "동명이품 — 후보 목록 반환"),
+	        @ApiResponse(responseCode = "404", description = "검색 결과 없음")
+	})
+	public ResponseEntity<?> identify(
+	        @Parameter(description = "검색할 약 이름 (예: 타이레놀, 아스피린)", example = "타이레놀")
+	        @RequestParam("name") @NotBlank String name) {
 		return switch (drugIdentifyService.identify(name)) {
 			case DrugIdentifyResult.Identified identified -> ResponseEntity.ok(identified.response());
 			case DrugIdentifyResult.Candidates candidates -> ResponseEntity

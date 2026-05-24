@@ -3,6 +3,7 @@ package mamokey.mom_med.backend.domain.nb.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Spring Boot + Spring Data JPA 환경에서는 JdbcTemplate이 항상 자동 등록되므로
  * 별도의 조건부 등록 없이 일반 컨트롤러로 노출합니다.</p>
  */
+@Hidden
 @RestController
 public class NbMetricsController {
 

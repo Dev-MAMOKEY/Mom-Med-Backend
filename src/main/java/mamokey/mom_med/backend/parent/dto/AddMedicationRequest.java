@@ -17,7 +17,6 @@ public record AddMedicationRequest(
         @Size(max = 20)
         String itemSeq,
 
-        @NotBlank(message = "약품명은 필수입니다.")
         @Size(max = 300)
         String drugName,
 

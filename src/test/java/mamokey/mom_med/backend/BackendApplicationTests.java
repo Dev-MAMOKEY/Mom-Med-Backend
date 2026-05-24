@@ -2,12 +2,22 @@ package mamokey.mom_med.backend;
 
 import mamokey.mom_med.backend.domain.drug.repository.DrugMasterRepository;
 import mamokey.mom_med.backend.domain.drug.repository.PillVisualRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurAgeContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurComboContraindicationRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyCautionRepository;
 import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepository;
+import mamokey.mom_med.backend.domain.dur.repository.DurPregnancyContraindicationRepository;
 import mamokey.mom_med.backend.domain.nb.repository.NbExtractionRepository;
 import mamokey.mom_med.backend.domain.nb.repository.NbInteractionRepository;
+import mamokey.mom_med.backend.external.hira.HiraClient;
 import mamokey.mom_med.backend.external.mfds.MfdsClient;
+import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
+import mamokey.mom_med.backend.parent.repository.PatientConditionRepository;
+import mamokey.mom_med.backend.parent.repository.DeviceTokenRepository;
+import mamokey.mom_med.backend.parent.repository.PatientMedicationRepository;
+import mamokey.mom_med.backend.parent.repository.PatientProfileRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +33,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 		"spring.autoconfigure.exclude="
 				+ "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
 				+ "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
-				+ "org.redisson.spring.starter.RedissonAutoConfigurationV4"
+				+ "org.redisson.spring.starter.RedissonAutoConfigurationV4",
+		// DurCsvLoadRunner가 @ConditionalOnProperty로 활성화되지 않도록 비활성화합니다.
+		"app.etl.dur.enabled=false"
 })
 class BackendApplicationTests {
 
@@ -43,13 +55,43 @@ class BackendApplicationTests {
 	DurElderlyNsaidCautionRepository durElderlyNsaidCautionRepository;
 
 	@MockitoBean
+	DurAgeContraindicationRepository durAgeContraindicationRepository;
+
+	@MockitoBean
+	DurPregnancyContraindicationRepository durPregnancyContraindicationRepository;
+
+	@MockitoBean
 	NbExtractionRepository nbExtractionRepository;
 
 	@MockitoBean
 	NbInteractionRepository nbInteractionRepository;
 
 	@MockitoBean
+	PatientProfileRepository patientProfileRepository;
+
+	@MockitoBean
+	PatientAllergyRepository patientAllergyRepository;
+
+	@MockitoBean
+	PatientConditionRepository patientConditionRepository;
+
+	@MockitoBean
+	PatientMedicationRepository patientMedicationRepository;
+
+	@MockitoBean
+	DeviceTokenRepository deviceTokenRepository;
+
+	@MockitoBean
 	MfdsClient mfdsClient;
+
+	@MockitoBean
+	HiraClient hiraClient;
+
+	@MockitoBean
+	JdbcTemplate jdbcTemplate;
+
+	@MockitoBean
+	NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@MockitoBean
 	ObjectMapper objectMapper;

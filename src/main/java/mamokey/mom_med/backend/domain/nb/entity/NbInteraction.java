@@ -72,6 +72,8 @@ public class NbInteraction {
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
+	public static final String ENTRY_TYPE_PATIENT_CLASS = "patient_class";
+
 	public static NbInteraction drugDrug(
 			Long extractionId,
 			String itemSeq,
@@ -93,6 +95,36 @@ public class NbInteraction {
 		interaction.partnerDrugNorm = partnerDrugNorm;
 		interaction.partnerDrugEn = partnerDrugEn;
 		interaction.drugGroup = drugGroup;
+		interaction.riskLevel = riskLevel;
+		interaction.reasonSummary = reasonSummary;
+		interaction.sourceQuote = sourceQuote;
+		return interaction;
+	}
+
+	/**
+	 * 환자분류 금기 entry 생성 팩토리 메서드 (Slice 05).
+	 *
+	 * <p>NB_DOC_DATA에서 추출한 "이 약을 투여하면 안 되는 환자 분류" 정보를 저장합니다.
+	 * partner_drug* 필드는 null, patient_class_text/kcd가 의미를 가집니다.</p>
+	 */
+	public static NbInteraction patientClass(
+			Long extractionId,
+			String itemSeq,
+			String drugName,
+			String patientClassText,
+			String patientClassKcd,
+			String riskLevel,
+			String reasonSummary,
+			String sourceQuote
+	) {
+		NbInteraction interaction = new NbInteraction();
+		interaction.extractionId = extractionId;
+		interaction.itemSeq = itemSeq;
+		interaction.drugName = drugName;
+		interaction.entryType = ENTRY_TYPE_PATIENT_CLASS;
+		interaction.patientClassText = patientClassText;
+		interaction.patientClassKcd = patientClassKcd;
+		interaction.drugGroup = false;
 		interaction.riskLevel = riskLevel;
 		interaction.reasonSummary = reasonSummary;
 		interaction.sourceQuote = sourceQuote;
