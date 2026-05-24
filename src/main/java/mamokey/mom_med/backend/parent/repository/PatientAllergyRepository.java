@@ -20,4 +20,7 @@ public interface PatientAllergyRepository extends JpaRepository<PatientAllergy, 
 
     /** 부모의 특정 알레르기 조회 (soft delete 무관) */
     Optional<PatientAllergy> findByIdAndParentId(Long id, UUID parentId);
+
+    /** 부모의 활성 알레르기 수 (GET /v1/parents/{id} 응답의 allergy_count) */
+    long countByParentIdAndDeletedAtIsNull(UUID parentId);
 }

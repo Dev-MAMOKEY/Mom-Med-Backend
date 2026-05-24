@@ -7,6 +7,8 @@ import mamokey.mom_med.backend.parent.domain.PatientProfile;
 import mamokey.mom_med.backend.parent.dto.CreateParentRequest;
 import mamokey.mom_med.backend.parent.dto.ParentProfileResponse;
 import mamokey.mom_med.backend.parent.dto.UpdateParentRequest;
+import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
+import mamokey.mom_med.backend.parent.repository.PatientMedicationRepository;
 import mamokey.mom_med.backend.parent.repository.PatientProfileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +24,16 @@ import java.util.UUID;
 public class ParentService {
 
     private final PatientProfileRepository profileRepository;
+    private final PatientMedicationRepository medicationRepository;
+    private final PatientAllergyRepository allergyRepository;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
     public ParentProfileResponse getProfile(UUID parentId) {
         PatientProfile profile = findOrThrow(parentId);
-        return ParentProfileResponse.from(profile);
+        int medicationCount = (int) medicationRepository.countByParentIdAndDeletedAtIsNull(parentId);
+        int allergyCount = (int) allergyRepository.countByParentIdAndDeletedAtIsNull(parentId);
+        return ParentProfileResponse.from(profile, medicationCount, allergyCount);
     }
 
     // ─── 생성 ─────────────────────────────────────────────────────────────
@@ -45,7 +51,7 @@ public class ParentService {
                 req.consentDataShare()
         );
         profileRepository.save(profile);
-        return ParentProfileResponse.from(profile);
+        return ParentProfileResponse.from(profile, 0, 0);
     }
 
     // ─── 수정 ─────────────────────────────────────────────────────────────
@@ -63,7 +69,9 @@ public class ParentService {
                 req.isPregnant(),
                 req.consentDataShare()
         );
-        return ParentProfileResponse.from(profile);
+        int medicationCount = (int) medicationRepository.countByParentIdAndDeletedAtIsNull(parentId);
+        int allergyCount = (int) allergyRepository.countByParentIdAndDeletedAtIsNull(parentId);
+        return ParentProfileResponse.from(profile, medicationCount, allergyCount);
     }
 
     // ─── 삭제 ─────────────────────────────────────────────────────────────

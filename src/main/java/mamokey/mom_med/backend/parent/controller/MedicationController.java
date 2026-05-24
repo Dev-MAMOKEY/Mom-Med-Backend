@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mamokey.mom_med.backend.global.rsdata.RsData;
 import mamokey.mom_med.backend.parent.dto.AddMedicationRequest;
+import mamokey.mom_med.backend.parent.dto.AddMedicationResponse;
 import mamokey.mom_med.backend.parent.dto.MedicationListResponse;
 import mamokey.mom_med.backend.parent.dto.MedicationResponse;
 import mamokey.mom_med.backend.parent.service.MedicationService;
@@ -40,13 +41,13 @@ public class MedicationController {
     private final MedicationService medicationService;
 
     @PostMapping
-    @Operation(summary = "약 추가 (DUR 병용금기 안전검사 포함)",
-               description = "BLOCK 판정 시 HTTP 409, error='block', verdict 포함 응답")
-    public ResponseEntity<RsData<MedicationResponse>> addMedication(
+    @Operation(summary = "약 추가 (DUR + NB 2겹 안전검사 포함)",
+               description = "BLOCK 판정 시 HTTP 409 error=block, WARN/ALLOW 시 HTTP 201 + safety_check 포함")
+    public ResponseEntity<RsData<AddMedicationResponse>> addMedication(
             @PathVariable UUID parentId,
             @Valid @RequestBody AddMedicationRequest request
     ) {
-        MedicationResponse response = medicationService.addMedication(parentId, request);
+        AddMedicationResponse response = medicationService.addMedication(parentId, request);
         return ResponseEntity.status(201).body(RsData.created(response));
     }
 

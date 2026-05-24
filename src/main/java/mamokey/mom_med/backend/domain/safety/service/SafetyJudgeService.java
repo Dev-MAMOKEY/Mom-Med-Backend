@@ -105,12 +105,15 @@ public class SafetyJudgeService {
 			return nbExtractionService.extract(drug.getItemSeq());
 		}
 		catch (CustomException exception) {
-			// 약 마스터에 NB_DOC_DATA가 아직 없는 개발/테스트 데이터는 NB 근거 없음으로 취급합니다.
-			// 실제 Slice 01 데이터가 채워지면 이 경로를 타지 않고 캐시/LLM 추출을 수행합니다.
 			if (exception.getErrorCode() == ErrorCode.INVALID_INPUT || exception.getErrorCode() == ErrorCode.NOT_FOUND) {
 				return new NbExtractionResult(null, List.of(), true);
 			}
 			throw exception;
+		}
+		catch (Exception exception) {
+			// Gemini API 키 오류·네트워크 장애 등 외부 장애 시 NB 근거 없음으로 graceful degradation.
+			// DUR 판정은 정상 진행됩니다.
+			return new NbExtractionResult(null, List.of(), true);
 		}
 	}
 

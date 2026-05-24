@@ -22,7 +22,7 @@ external:
   kma:
     api-key: 5065306b2c991f4cc60c5538fd6ca6a264a3f54a654aff8b773d94b0ec7d989a
   gemini:
-    api-key: AIzaSyDnftwk6qAv-km0J7zfeTOALI36UuzTx0E
+    api-key: AIzaSyBI857RD_6MBkggwsyBa0BXrFRGGHj6xPE
     model: gemini-2.5-flash-lite
     prompt-version: v1
 

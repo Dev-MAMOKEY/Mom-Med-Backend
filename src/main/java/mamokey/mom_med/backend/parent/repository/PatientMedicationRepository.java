@@ -23,4 +23,7 @@ public interface PatientMedicationRepository extends JpaRepository<PatientMedica
 
     /** 중복 약 등록 여부 확인 (활성 레코드에 한해) */
     boolean existsByParentIdAndItemSeqAndDeletedAtIsNull(UUID parentId, String itemSeq);
+
+    /** 부모의 활성 약 수 (GET /v1/parents/{id} 응답의 medication_count) */
+    long countByParentIdAndDeletedAtIsNull(UUID parentId);
 }
