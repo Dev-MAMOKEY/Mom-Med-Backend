@@ -25,6 +25,7 @@ import mamokey.mom_med.backend.global.util.HallucinationVerifier;
 import mamokey.mom_med.backend.infra.llm.GeminiClient;
 import mamokey.mom_med.backend.infra.llm.LLMResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -60,6 +61,7 @@ public class NbExtractionService {
 		this.objectMapper = objectMapper;
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public NbExtractionResult extract(String itemSeq) {
 		DrugMaster drug = findDrugOrThrow(itemSeq);
 		NbExtraction cached = nbExtractionRepository

@@ -10,6 +10,7 @@ import mamokey.mom_med.backend.parent.dto.ConditionListResponse;
 import mamokey.mom_med.backend.parent.dto.ConditionResponse;
 import mamokey.mom_med.backend.parent.dto.CreateConditionRequest;
 import mamokey.mom_med.backend.parent.repository.PatientConditionRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class ConditionService {
     private final PatientConditionRepository conditionRepository;
     private final ParentService parentService;
     private final HiraClient hiraClient;
+    private final JdbcTemplate jdbcTemplate;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
@@ -74,11 +76,12 @@ public class ConditionService {
                 throw new CustomException(ErrorCode.DISEASE_NOT_FOUND,
                         "HIRA에서 해당 KCD 코드를 찾을 수 없습니다: " + kcdCode);
             }
-            // conditionName이 비어 있으면 HIRA 공식 한글명으로 자동 채움
             HiraDiseaseItem official = items.getFirst();
             if (conditionName == null || conditionName.isBlank()) {
                 conditionName = official.sickNm();
             }
+            // FK 제약 충족: HIRA API로 검증된 코드를 disease_master에 upsert
+            upsertDiseaseMaster(official);
         }
 
         // 중복 등록 방지
@@ -119,6 +122,18 @@ public class ConditionService {
     }
 
     // ─── 내부 유틸 ────────────────────────────────────────────────────────
+
+    private void upsertDiseaseMaster(HiraDiseaseItem item) {
+        jdbcTemplate.update("""
+                INSERT INTO ref.disease_master (sick_cd, sick_nm, sick_eng_nm)
+                VALUES (?, ?, ?)
+                ON CONFLICT (sick_cd) DO UPDATE
+                  SET sick_nm     = EXCLUDED.sick_nm,
+                      sick_eng_nm = EXCLUDED.sick_eng_nm
+                """,
+                item.sickCd(), item.sickNm(), item.sickEngNm());
+    }
+
 
     /**
      * 질환명 정규화: 소문자 변환 + 공백·괄호·특수문자 제거.

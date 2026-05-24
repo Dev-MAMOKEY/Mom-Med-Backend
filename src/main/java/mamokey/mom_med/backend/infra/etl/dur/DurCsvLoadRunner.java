@@ -1,5 +1,7 @@
 package mamokey.mom_med.backend.infra.etl.dur;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.etl.dur.enabled", havingValue = "true")
 public class DurCsvLoadRunner implements ApplicationRunner {
 
+	private static final Logger log = LoggerFactory.getLogger(DurCsvLoadRunner.class);
+
 	private final DurCsvLoader durCsvLoader;
 
 	public DurCsvLoadRunner(DurCsvLoader durCsvLoader) {
@@ -23,6 +27,10 @@ public class DurCsvLoadRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
-		durCsvLoader.loadDefaults();
+		try {
+			durCsvLoader.loadDefaults();
+		} catch (Exception e) {
+			log.error("DUR CSV load failed — app will start without full DUR data. Re-run with --app.etl.dur.enabled=true after fixing the CSV.", e);
+		}
 	}
 }

@@ -1,5 +1,9 @@
 package mamokey.mom_med.backend.domain.safety.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import mamokey.mom_med.backend.domain.safety.dto.SafetyCheckRequest;
 import mamokey.mom_med.backend.domain.safety.model.SafetyDecision;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/v1/safety")
+@Tag(name = "Safety", description = "약물 안전성 단독 검사 (Slice 02)")
 public class SafetyController {
 
 	private final SafetyCheckService safetyCheckService;
@@ -36,6 +41,12 @@ public class SafetyController {
 	 * WARN/ALLOW는 정상 처리 가능한 결과라 HTTP 200을 반환합니다.</p>
 	 */
 	@PostMapping("/check")
+	@Operation(summary = "약물 안전성 검사 (DUR 병용금기 · 노인주의)",
+	           description = "ALLOW/WARN: 200, BLOCK: 409 (error=block + verdict)")
+	@ApiResponses({
+	        @ApiResponse(responseCode = "200", description = "ALLOW 또는 WARN — 투여 가능 (주의 포함)"),
+	        @ApiResponse(responseCode = "409", description = "BLOCK — 병용금기 차단, verdict 포함")
+	})
 	public ResponseEntity<SafetyVerdict> check(@Valid @RequestBody SafetyCheckRequest request) {
 		SafetyVerdict verdict = safetyCheckService.check(request);
 		if (verdict.decision() == SafetyDecision.BLOCK) {
