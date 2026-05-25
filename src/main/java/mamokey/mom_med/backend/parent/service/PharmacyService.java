@@ -97,6 +97,31 @@ public class PharmacyService {
         return PharmacyResponse.from(pharmacy);
     }
 
+    // ─── 방문 기록 ────────────────────────────────────────────────────────
+
+    @Transactional
+    public PharmacyResponse recordVisit(UUID parentId, Long pharmacyId) {
+        ParentPharmacy pharmacy = pharmacyRepository
+                .findByIdAndParentId(pharmacyId, parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "약국 정보를 찾을 수 없습니다."));
+
+        pharmacy.recordVisit();
+        return PharmacyResponse.from(pharmacy);
+    }
+
+    // ─── 단골 토글 ────────────────────────────────────────────────────────
+
+    @Transactional
+    public PharmacyResponse updateRegular(UUID parentId, Long pharmacyId, boolean regular) {
+        ParentPharmacy pharmacy = pharmacyRepository
+                .findByIdAndParentId(pharmacyId, parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "약국 정보를 찾을 수 없습니다."));
+
+        pharmacy.markRegular(regular);
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
+        return PharmacyResponse.from(pharmacy);
+    }
+
     // ─── 삭제 ─────────────────────────────────────────────────────────────
 
     @Transactional

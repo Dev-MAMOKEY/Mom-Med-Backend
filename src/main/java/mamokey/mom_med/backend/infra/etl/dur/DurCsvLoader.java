@@ -2,6 +2,9 @@ package mamokey.mom_med.backend.infra.etl.dur;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.MalformedInputException;
@@ -188,8 +191,8 @@ public class DurCsvLoader {
 			return new Object[] {
 					sha256("age", row),
 					ingredient, norm,
-					value(header, row, "성분코드"),
-					value(header, row, "제품코드"),
+					truncate(value(header, row, "성분코드"), 200),
+					truncate(value(header, row, "제품코드"), 200),
 					value(header, row, "제품명"),
 					ageLimit,
 					value(header, row, "고시번호"),
@@ -217,8 +220,8 @@ public class DurCsvLoader {
 			return new Object[] {
 					sha256("pregnancy", row),
 					ingredient, norm,
-					value(header, row, "성분코드"),
-					value(header, row, "제품코드"),
+					truncate(value(header, row, "성분코드"), 200),
+					truncate(value(header, row, "제품코드"), 200),
 					value(header, row, "제품명"),
 					value(header, row, "임부금기등급"),
 					value(header, row, "고시번호"),
@@ -317,7 +320,8 @@ public class DurCsvLoader {
 
 		int insertedRows = 0;
 		List<Object[]> batch = new ArrayList<>(BATCH_SIZE);
-		try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
+		// Files.newBufferedReader 대신 BOM 감지·제거 리더 사용
+		try (BufferedReader reader = openWithoutBom(path, charset)) {
 			Map<String, Integer> header = header(CsvRowParser.parse(reader.readLine()));
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -339,6 +343,10 @@ public class DurCsvLoader {
 				log.warn("CP949 decoding failed for source={}, retrying with UTF-8", sourceName);
 				return load(path, sourceName, rowMapper, sql, StandardCharsets.UTF_8);
 			}
+			if (charset == StandardCharsets.UTF_8) {
+				log.warn("UTF-8 decoding failed for source={}, retrying with EUC-KR", sourceName);
+				return load(path, sourceName, rowMapper, sql, Charset.forName("EUC-KR"));
+			}
 			log.error("DUR CSV load failed (encoding mismatch). source={}, path={}", sourceName, path.toAbsolutePath(), exception);
 			throw new IllegalStateException("DUR CSV load failed: " + sourceName, exception);
 		}
@@ -346,6 +354,27 @@ public class DurCsvLoader {
 			log.error("DUR CSV load failed. source={}, path={}", sourceName, path.toAbsolutePath(), exception);
 			throw new IllegalStateException("DUR CSV load failed: " + sourceName, exception);
 		}
+	}
+
+	/**
+	 * UTF-8 BOM(EF BB BF)이 있으면 건너뛰고 지정 charset으로 읽는 BufferedReader를 반환합니다.
+	 *
+	 * <p>정부 CSV 중 일부가 UTF-8 BOM으로 저장되어 CP949·UTF-8 파서 모두 실패하는 문제를 방지합니다.</p>
+	 */
+	private static BufferedReader openWithoutBom(Path path, Charset charset) throws IOException {
+		InputStream raw = Files.newInputStream(path);
+		PushbackInputStream pb = new PushbackInputStream(raw, 3);
+		byte[] bom = new byte[3];
+		int read = pb.read(bom, 0, 3);
+		// UTF-8 BOM이 아니면 읽어 들인 바이트를 다시 밀어 넣음
+		boolean hasBom = read == 3
+				&& bom[0] == (byte) 0xEF
+				&& bom[1] == (byte) 0xBB
+				&& bom[2] == (byte) 0xBF;
+		if (!hasBom && read > 0) {
+			pb.unread(bom, 0, read);
+		}
+		return new BufferedReader(new InputStreamReader(pb, charset));
 	}
 
 	private int flush(String sql, List<Object[]> batch) {

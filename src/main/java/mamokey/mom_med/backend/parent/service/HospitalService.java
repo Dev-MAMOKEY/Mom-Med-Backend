@@ -115,6 +115,20 @@ public class HospitalService {
         eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
     }
 
+    // ─── 단골 토글 ────────────────────────────────────────────────────────
+
+    @Transactional
+    public HospitalResponse updateRegular(UUID parentId, Long hospitalId, boolean regular) {
+        ParentHospital hospital = hospitalRepository
+                .findByIdAndParentId(hospitalId, parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "병원 정보를 찾을 수 없습니다."));
+
+        hospital.markRegular(regular);
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
+        return HospitalResponse.from(hospital,
+                erInfoRepository.findById(hospital.getYkiho()).orElse(null));
+    }
+
     // ─── 내부 유틸 ────────────────────────────────────────────────────────
 
     private HiraHospitalItem resolveHospital(AddHospitalRequest request) {

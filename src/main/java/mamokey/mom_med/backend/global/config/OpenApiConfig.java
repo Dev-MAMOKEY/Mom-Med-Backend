@@ -16,7 +16,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Mom-Med API")
-                        .description("부모 복약 안전 관리 서비스 API (Slice 01~05)")
+                        .description("부모 복약 안전 관리 서비스 API (Slice 01~08)")
                         .version("v1"))
                 .tags(List.of(
                         new Tag().name("Parent").description("부모 프로파일 관리 (Slice 01)"),
@@ -29,7 +29,8 @@ public class OpenApiConfig {
                         new Tag().name("DeviceToken").description("자녀 디바이스 토큰 관리 (Slice 07)"),
                         new Tag().name("Hospital").description("부모 단골 병원 관리 (Slice 08)"),
                         new Tag().name("Pharmacy").description("부모 단골 약국 관리 (Slice 08)"),
-                        new Tag().name("EmergencyCard").description("응급카드 QR 관리 (Slice 08)")
+                        new Tag().name("EmergencyCard").description("응급카드 QR 관리 (Slice 08)"),
+                        new Tag().name("Hospital").description("HIRA 병원·약국 검색 (Slice 08)")
                 ));
     }
 }

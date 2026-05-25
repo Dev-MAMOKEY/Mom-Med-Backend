@@ -6,9 +6,11 @@ import lombok.RequiredArgsConstructor;
 import mamokey.mom_med.backend.global.exception.CustomException;
 import mamokey.mom_med.backend.global.exception.ErrorCode;
 import mamokey.mom_med.backend.parent.domain.EmergencyCard;
+import mamokey.mom_med.backend.parent.domain.EmergencyContact;
 import mamokey.mom_med.backend.parent.dto.EmergencyCardResponse;
 import mamokey.mom_med.backend.parent.event.ParentDataChangedEvent;
 import mamokey.mom_med.backend.parent.repository.EmergencyCardRepository;
+import mamokey.mom_med.backend.parent.repository.EmergencyContactRepository;
 import mamokey.mom_med.backend.parent.repository.HospitalEmergencyInfoRepository;
 import mamokey.mom_med.backend.parent.repository.ParentHospitalRepository;
 import mamokey.mom_med.backend.parent.repository.ParentPharmacyRepository;
@@ -43,6 +45,7 @@ public class EmergencyCardService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final EmergencyCardRepository cardRepository;
+    private final EmergencyContactRepository contactRepository;
     private final ParentHospitalRepository hospitalRepository;
     private final HospitalEmergencyInfoRepository erInfoRepository;
     private final ParentPharmacyRepository pharmacyRepository;
@@ -71,6 +74,15 @@ public class EmergencyCardService {
         cardRepository.incrementAccessCount(token);
 
         return parseSnapshot(card.getSnapshot());
+    }
+
+    // ─── 카드 상태 조회 ───────────────────────────────────────────────────
+
+    /** 현재 발급된 응급카드 메타 정보 조회 (snapshot 제외) */
+    public EmergencyCardResponse getCard(UUID parentId) {
+        EmergencyCard card = cardRepository.findByParentId(parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EMERGENCY_CARD_NOT_FOUND));
+        return toResponse(card);
     }
 
     // ─── 재발급 ───────────────────────────────────────────────────────────
@@ -244,7 +256,20 @@ public class EmergencyCardService {
         snapshot.put("medications",        medications);
         snapshot.put("hospitals",          hospitals);
         snapshot.put("pharmacies",         pharmacies);
-        snapshot.put("emergency_contacts", List.of());
+        // 6. 비상연락처 (priority 오름차순)
+        List<Map<String, Object>> contacts = contactRepository
+                .findByParentIdOrderByPriorityAscCreatedAtAsc(parentId)
+                .stream()
+                .map(c -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("name",         c.getName());
+                    m.put("relationship", c.getRelationship());
+                    m.put("phone",        c.getPhone());
+                    return m;
+                })
+                .toList();
+
+        snapshot.put("emergency_contacts", contacts);
 
         try {
             return objectMapper.writeValueAsString(snapshot);
