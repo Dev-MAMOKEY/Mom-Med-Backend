@@ -26,3 +26,5 @@ app:
         # 파일 경로는 repo 루트 기준 상대경로입니다.
         enabled: true
         path: 기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx
+        # 기상청 xlsx가 POI 기본 zip bomb ratio(0.01)에 걸리는 경우가 있어 공용 profile에서 완화합니다.
+        min-inflate-ratio: 0.001

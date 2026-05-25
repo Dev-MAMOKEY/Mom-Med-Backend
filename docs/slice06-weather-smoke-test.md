@@ -63,6 +63,10 @@ SPRING_PROFILES_ACTIVE=local,seed-weather ./gradlew bootRun
 - `seed/weather_rules_v0.2.json` → `ref.weather_rules`
 - `기상청41_단기예보...격자_위경도(2510).xlsx` → `ref.region_grid`
 
+기상청 xlsx가 Apache POI의 zip bomb 보호 기준에 걸릴 수 있으므로 `seed-weather` profile은
+`min-inflate-ratio: 0.001`을 기본으로 사용합니다. 팀원이 파일 위치만 다르면 profile은 유지하고
+`REGION_GRID_XLSX_PATH`만 각자 환경변수로 덮어쓰면 됩니다.
+
 확인 SQL:
 
 ```sql
@@ -88,6 +92,7 @@ $env:WEATHER_RULES_SEED_PATH="seed/weather_rules_v0.2.json"
 $env:WEATHER_RULES_VERSION="v0.2"
 $env:REGION_GRID_LOAD_ENABLED="true"
 $env:REGION_GRID_XLSX_PATH="기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx"
+$env:REGION_GRID_MIN_INFLATE_RATIO="0.001"
 $env:APP_ETL_DUR_ENABLED="false"
 
 .\gradlew.bat bootRun

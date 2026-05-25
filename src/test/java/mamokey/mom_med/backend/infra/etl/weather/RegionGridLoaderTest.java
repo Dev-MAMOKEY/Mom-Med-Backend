@@ -38,7 +38,7 @@ class RegionGridLoaderTest {
 		when(regionGridRepository.findFirstBySidoAndSigunguAndEupMyeonDong("대구광역시", "중구", "성내동"))
 				.thenReturn(Optional.empty());
 
-		RegionGridLoader loader = new RegionGridLoader(regionGridRepository);
+		RegionGridLoader loader = new RegionGridLoader(regionGridRepository, 0.001);
 		RegionGridLoadResult result = loader.load(xlsx);
 
 		assertThat(result.inserted()).isEqualTo(1);

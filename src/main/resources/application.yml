@@ -66,6 +66,8 @@ app:
         # true로 켜면 기상청 격자 xlsx를 ref.region_grid에 upsert합니다. 파일은 로컬에만 두고 Git에 올리지 않습니다.
         enabled: ${REGION_GRID_LOAD_ENABLED:false}
         path: ${REGION_GRID_XLSX_PATH:기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx}
+        # Apache POI의 zip bomb 오탐 방지 기준입니다. 기상청 xlsx styles.xml이 기본값 0.01에 걸릴 수 있어 0.001을 기본으로 둡니다.
+        min-inflate-ratio: ${REGION_GRID_MIN_INFLATE_RATIO:0.001}
 
 springdoc:
   api-docs:

@@ -10,12 +10,14 @@ import java.util.Map;
 
 import mamokey.mom_med.backend.domain.weather.entity.RegionGrid;
 import mamokey.mom_med.backend.domain.weather.repository.RegionGridRepository;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,13 +34,21 @@ public class RegionGridLoader {
 
 	private final RegionGridRepository regionGridRepository;
 	private final DataFormatter formatter = new DataFormatter();
+	private final double minInflateRatio;
 
-	public RegionGridLoader(RegionGridRepository regionGridRepository) {
+	public RegionGridLoader(
+			RegionGridRepository regionGridRepository,
+			@Value("${app.etl.weather.region-grid.min-inflate-ratio:0.001}") double minInflateRatio
+	) {
 		this.regionGridRepository = regionGridRepository;
+		this.minInflateRatio = minInflateRatio;
 	}
 
 	@Transactional
 	public RegionGridLoadResult load(Path xlsxPath) {
+		// 기상청 xlsx는 정상 파일이어도 styles.xml 압축률이 POI 기본값(0.01)보다 낮아 zip bomb 오탐이 날 수 있습니다.
+		// 신뢰한 로컬 공공데이터 파일만 읽는 ETL이므로 제한값을 설정으로 낮추되, 완전히 0으로 풀지는 않습니다.
+		ZipSecureFile.setMinInflateRatio(minInflateRatio);
 		try (InputStream inputStream = Files.newInputStream(xlsxPath);
 			 Workbook workbook = WorkbookFactory.create(inputStream)) {
 			Sheet sheet = workbook.getSheetAt(0);
