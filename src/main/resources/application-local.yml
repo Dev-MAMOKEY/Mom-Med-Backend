@@ -28,6 +28,8 @@ external:
 
 app:
   encryption-key: za3zPt7124hpw/vGP7WQEGkfRD44sRerkcUVQ8zk2qs=
+  emergency-card:
+    base-url: http://localhost:8080/em
   etl:
     dur:
       enabled: true
