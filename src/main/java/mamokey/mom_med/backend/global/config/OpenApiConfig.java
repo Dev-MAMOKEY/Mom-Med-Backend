@@ -26,7 +26,10 @@ public class OpenApiConfig {
                         new Tag().name("NB").description("NB 문서 추출 · 조회 (Slice 03)"),
                         new Tag().name("Allergy").description("부모 알레르기 관리 (Slice 05)"),
                         new Tag().name("Condition").description("부모 기저질환 관리 (Slice 05)"),
-                        new Tag().name("DeviceToken").description("자녀 디바이스 토큰 관리 (Slice 07)")
+                        new Tag().name("DeviceToken").description("자녀 디바이스 토큰 관리 (Slice 07)"),
+                        new Tag().name("Hospital").description("부모 단골 병원 관리 (Slice 08)"),
+                        new Tag().name("Pharmacy").description("부모 단골 약국 관리 (Slice 08)"),
+                        new Tag().name("EmergencyCard").description("응급카드 QR 관리 (Slice 08)")
                 ));
     }
 }

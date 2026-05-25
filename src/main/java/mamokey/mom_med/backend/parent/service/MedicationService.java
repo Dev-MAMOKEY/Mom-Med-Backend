@@ -16,7 +16,9 @@ import mamokey.mom_med.backend.parent.dto.AddMedicationRequest;
 import mamokey.mom_med.backend.parent.dto.AddMedicationResponse;
 import mamokey.mom_med.backend.parent.dto.MedicationListResponse;
 import mamokey.mom_med.backend.parent.dto.MedicationResponse;
+import mamokey.mom_med.backend.parent.event.ParentDataChangedEvent;
 import mamokey.mom_med.backend.parent.repository.PatientMedicationRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,7 @@ public class MedicationService {
     private final SafetyJudgeService safetyJudgeService;
     private final ParentService parentService;
     private final SafetyCheckLogWriter safetyCheckLogWriter;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
@@ -117,6 +120,7 @@ public class MedicationService {
                 req.memo()
         );
         medicationRepository.save(medication);
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
         return AddMedicationResponse.from(medication, verdict);
     }
 
@@ -129,5 +133,6 @@ public class MedicationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEDICATION_NOT_FOUND));
 
         medication.softDelete();
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
     }
 }
