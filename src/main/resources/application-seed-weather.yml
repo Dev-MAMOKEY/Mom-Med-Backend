@@ -1,0 +1,28 @@
+# Slice 06 팀 공용 seed 적재 profile입니다.
+#
+# 사용 방법:
+#   SPRING_PROFILES_ACTIVE=local,seed-weather 로 서버를 실행하면
+#   weather_rules JSON과 기상청 격자 xlsx를 애플리케이션 시작 시 자동 upsert합니다.
+#
+# 주의:
+#   이 파일에는 API Key, DB 비밀번호 같은 민감정보를 넣지 않습니다.
+#   DB 접속 정보는 각자 .env, IntelliJ Run Configuration, application-local.yml 등 로컬 방식으로 관리합니다.
+
+app:
+  etl:
+    # Slice 06 smoke test 중 DUR CSV 대용량 적재가 같이 돌지 않도록 명시적으로 끕니다.
+    dur:
+      enabled: false
+
+    weather:
+      rules:
+        # seed/weather_rules_v0.2.json 32개 룰을 ref.weather_rules에 upsert합니다.
+        enabled: true
+        path: seed/weather_rules_v0.2.json
+        version: v0.2
+
+      region-grid:
+        # 기상청 격자 xlsx를 ref.region_grid에 upsert합니다.
+        # 파일 경로는 repo 루트 기준 상대경로입니다.
+        enabled: true
+        path: 기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx

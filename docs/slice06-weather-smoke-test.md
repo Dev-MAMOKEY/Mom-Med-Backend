@@ -26,20 +26,42 @@ WHERE table_schema = 'ref'
   AND table_name IN ('weather_rules', 'region_grid');
 ```
 
-## 2. Weather Rule Seed 적재
+## 2. 테스트 전 적재 방법
 
-기본값은 자동 적재가 꺼져 있습니다. 필요할 때만 켭니다.
+### 방법 A. 팀 공유용 추천 방식: `seed-weather` profile
+
+팀원은 환경변수를 여러 개 직접 입력할 필요 없이 `seed-weather` profile만 추가하면 됩니다.
+이 profile은 Git에 올라가는 공용 설정이며, 민감정보는 포함하지 않습니다.
+
+IntelliJ:
+
+1. 우측 상단 `BackendApplication` 실행 설정 클릭
+2. `Edit Configurations...`
+3. `Active profiles`에 아래 값 입력
+
+```text
+local,seed-weather
+```
+
+4. 실행
+
+PowerShell:
 
 ```powershell
-$env:WEATHER_RULES_LOAD_ENABLED="true"
-$env:WEATHER_RULES_SEED_PATH="seed/weather_rules_v0.2.json"
-$env:WEATHER_RULES_VERSION="v0.2"
-
-# DUR CSV 자동 적재가 켜져 있는 로컬 설정이면 함께 꺼둡니다.
-$env:APP_ETL_DUR_ENABLED="false"
-
+$env:SPRING_PROFILES_ACTIVE="local,seed-weather"
 .\gradlew.bat bootRun
 ```
+
+macOS/Linux:
+
+```bash
+SPRING_PROFILES_ACTIVE=local,seed-weather ./gradlew bootRun
+```
+
+이 방식으로 실행하면 애플리케이션 시작 시 아래 두 적재가 자동으로 수행됩니다.
+
+- `seed/weather_rules_v0.2.json` → `ref.weather_rules`
+- `기상청41_단기예보...격자_위경도(2510).xlsx` → `ref.region_grid`
 
 확인 SQL:
 
@@ -54,15 +76,24 @@ WHERE general_knowledge_used = TRUE
 -- 기대: 17
 ```
 
-## 3. Region Grid xlsx 적재
+### 방법 B. 일회성 환경변수 방식
+
+파일 위치를 바꿔서 테스트해야 할 때만 사용합니다.
+
+PowerShell:
 
 ```powershell
+$env:WEATHER_RULES_LOAD_ENABLED="true"
+$env:WEATHER_RULES_SEED_PATH="seed/weather_rules_v0.2.json"
+$env:WEATHER_RULES_VERSION="v0.2"
 $env:REGION_GRID_LOAD_ENABLED="true"
 $env:REGION_GRID_XLSX_PATH="기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx"
 $env:APP_ETL_DUR_ENABLED="false"
 
 .\gradlew.bat bootRun
 ```
+
+## 3. Region Grid 적재 확인
 
 확인 SQL:
 
