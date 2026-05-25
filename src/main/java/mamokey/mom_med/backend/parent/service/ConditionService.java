@@ -9,7 +9,9 @@ import mamokey.mom_med.backend.parent.domain.PatientCondition;
 import mamokey.mom_med.backend.parent.dto.ConditionListResponse;
 import mamokey.mom_med.backend.parent.dto.ConditionResponse;
 import mamokey.mom_med.backend.parent.dto.CreateConditionRequest;
+import mamokey.mom_med.backend.parent.event.ParentDataChangedEvent;
 import mamokey.mom_med.backend.parent.repository.PatientConditionRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class ConditionService {
     private final ParentService parentService;
     private final HiraClient hiraClient;
     private final JdbcTemplate jdbcTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
@@ -104,6 +107,7 @@ public class ConditionService {
         );
 
         conditionRepository.save(condition);
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
         return ConditionResponse.from(condition);
     }
 
@@ -119,6 +123,7 @@ public class ConditionService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CONDITION_NOT_FOUND));
 
         condition.softDelete();
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
     }
 
     // ─── 내부 유틸 ────────────────────────────────────────────────────────

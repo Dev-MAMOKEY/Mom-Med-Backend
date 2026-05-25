@@ -8,7 +8,9 @@ import mamokey.mom_med.backend.parent.domain.PatientAllergy;
 import mamokey.mom_med.backend.parent.dto.AllergyListResponse;
 import mamokey.mom_med.backend.parent.dto.AllergyResponse;
 import mamokey.mom_med.backend.parent.dto.CreateAllergyRequest;
+import mamokey.mom_med.backend.parent.event.ParentDataChangedEvent;
 import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class AllergyService {
 
     private final PatientAllergyRepository allergyRepository;
     private final ParentService parentService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
@@ -74,6 +77,7 @@ public class AllergyService {
         );
 
         allergyRepository.save(allergy);
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
         return AllergyResponse.from(allergy);
     }
 
@@ -94,5 +98,6 @@ public class AllergyService {
         }
 
         allergy.softDelete();
+        eventPublisher.publishEvent(new ParentDataChangedEvent(parentId));
     }
 }
