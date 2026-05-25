@@ -54,6 +54,19 @@ server:
   # 로컬과 기본 실행 환경에서 사용할 HTTP 포트입니다.
   port: 8080
 
+app:
+  etl:
+    weather:
+      rules:
+        # true로 켜면 애플리케이션 시작 시 seed/weather_rules_v0.2.json을 ref.weather_rules에 upsert합니다.
+        enabled: ${WEATHER_RULES_LOAD_ENABLED:false}
+        path: ${WEATHER_RULES_SEED_PATH:seed/weather_rules_v0.2.json}
+        version: ${WEATHER_RULES_VERSION:v0.2}
+      region-grid:
+        # true로 켜면 기상청 격자 xlsx를 ref.region_grid에 upsert합니다. 파일은 로컬에만 두고 Git에 올리지 않습니다.
+        enabled: ${REGION_GRID_LOAD_ENABLED:false}
+        path: ${REGION_GRID_XLSX_PATH:기상청41_단기예보 조회서비스_오픈API활용가이드_2510/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2510).xlsx}
+
 springdoc:
   api-docs:
     # OpenAPI JSON 문서 경로입니다.
