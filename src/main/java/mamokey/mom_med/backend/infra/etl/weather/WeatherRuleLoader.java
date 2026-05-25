@@ -82,12 +82,24 @@ public class WeatherRuleLoader {
 
 	private Map<String, Object> readSeed(Path seedPath) {
 		try {
-			return objectMapper.readValue(Files.readString(seedPath), new TypeReference<>() {
+			String seedJson = stripUtf8Bom(Files.readString(seedPath));
+			return objectMapper.readValue(seedJson, new TypeReference<>() {
 			});
 		}
 		catch (IOException exception) {
 			throw new IllegalStateException("weather_rules seed 파일을 읽을 수 없습니다: " + seedPath, exception);
 		}
+	}
+
+	/**
+	 * 일부 Windows 편집기/엑셀 변환 도구는 UTF-8 JSON 앞에 BOM(U+FEFF)을 붙입니다.
+	 * JSON 파서는 첫 글자로 '{'를 기대하므로 seed 적재 직전에 BOM만 제거합니다.
+	 */
+	private static String stripUtf8Bom(String text) {
+		if (text != null && !text.isEmpty() && text.charAt(0) == '\uFEFF') {
+			return text.substring(1);
+		}
+		return text;
 	}
 
 	@SuppressWarnings("unchecked")

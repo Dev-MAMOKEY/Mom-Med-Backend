@@ -32,7 +32,7 @@ class WeatherRuleLoaderTest {
 	@Test
 	void loadWeatherRulesFromJsonSeed() throws Exception {
 		Path seed = tempDir.resolve("weather_rules.json");
-		Files.writeString(seed, """
+		Files.writeString(seed, "\uFEFF" + """
 				{
 				  "rules": [
 				    {
