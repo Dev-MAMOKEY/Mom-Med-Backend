@@ -123,4 +123,13 @@ public class PatientProfile extends BaseTimeEntity {
     public boolean isPregnant() {
         return pregnant;
     }
+
+    /**
+     * Slice 06에서 주소를 기상청 격자 좌표로 변환한 뒤 저장할 때 사용합니다.
+     * 부모 등록/주소 수정 시 nx, ny가 채워져야 Slice 07이 별도 주소 파싱 없이 기상청 API를 호출할 수 있습니다.
+     */
+    public void updateGrid(Short nx, Short ny) {
+        this.nx = nx;
+        this.ny = ny;
+    }
 }
