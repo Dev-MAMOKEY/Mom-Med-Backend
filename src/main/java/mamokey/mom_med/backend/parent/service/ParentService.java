@@ -1,6 +1,7 @@
 package mamokey.mom_med.backend.parent.service;
 
 import lombok.RequiredArgsConstructor;
+import mamokey.mom_med.backend.domain.weather.service.ParentGridService;
 import mamokey.mom_med.backend.global.exception.CustomException;
 import mamokey.mom_med.backend.global.exception.ErrorCode;
 import mamokey.mom_med.backend.parent.domain.PatientProfile;
@@ -26,6 +27,7 @@ public class ParentService {
     private final PatientProfileRepository profileRepository;
     private final PatientMedicationRepository medicationRepository;
     private final PatientAllergyRepository allergyRepository;
+    private final ParentGridService parentGridService;
 
     // ─── 조회 ─────────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ public class ParentService {
                 req.consentDataShare()
         );
         profileRepository.save(profile);
+        parentGridService.updateParentGrid(profile.getParentId());
         return ParentProfileResponse.from(profile, 0, 0);
     }
 
@@ -69,6 +72,7 @@ public class ParentService {
                 req.isPregnant(),
                 req.consentDataShare()
         );
+        parentGridService.updateParentGrid(parentId);
         int medicationCount = (int) medicationRepository.countByParentIdAndDeletedAtIsNull(parentId);
         int allergyCount = (int) allergyRepository.countByParentIdAndDeletedAtIsNull(parentId);
         return ParentProfileResponse.from(profile, medicationCount, allergyCount);

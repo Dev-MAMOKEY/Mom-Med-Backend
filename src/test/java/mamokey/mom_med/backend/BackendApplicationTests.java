@@ -9,6 +9,8 @@ import mamokey.mom_med.backend.domain.dur.repository.DurElderlyNsaidCautionRepos
 import mamokey.mom_med.backend.domain.dur.repository.DurPregnancyContraindicationRepository;
 import mamokey.mom_med.backend.domain.nb.repository.NbExtractionRepository;
 import mamokey.mom_med.backend.domain.nb.repository.NbInteractionRepository;
+import mamokey.mom_med.backend.domain.weather.repository.RegionGridRepository;
+import mamokey.mom_med.backend.domain.weather.repository.WeatherRuleRepository;
 import mamokey.mom_med.backend.external.hira.HiraClient;
 import mamokey.mom_med.backend.external.mfds.MfdsClient;
 import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
@@ -65,6 +67,12 @@ class BackendApplicationTests {
 
 	@MockitoBean
 	NbInteractionRepository nbInteractionRepository;
+
+	@MockitoBean
+	WeatherRuleRepository weatherRuleRepository;
+
+	@MockitoBean
+	RegionGridRepository regionGridRepository;
 
 	@MockitoBean
 	PatientProfileRepository patientProfileRepository;
