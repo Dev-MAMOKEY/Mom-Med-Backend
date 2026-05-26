@@ -16,8 +16,14 @@ import mamokey.mom_med.backend.external.mfds.MfdsClient;
 import mamokey.mom_med.backend.parent.repository.PatientAllergyRepository;
 import mamokey.mom_med.backend.parent.repository.PatientConditionRepository;
 import mamokey.mom_med.backend.parent.repository.DeviceTokenRepository;
+import mamokey.mom_med.backend.parent.repository.EmergencyCardRepository;
+import mamokey.mom_med.backend.parent.repository.EmergencyContactRepository;
+import mamokey.mom_med.backend.parent.repository.HospitalEmergencyInfoRepository;
+import mamokey.mom_med.backend.parent.repository.ParentHospitalRepository;
+import mamokey.mom_med.backend.parent.repository.ParentPharmacyRepository;
 import mamokey.mom_med.backend.parent.repository.PatientMedicationRepository;
 import mamokey.mom_med.backend.parent.repository.PatientProfileRepository;
+import org.redisson.api.RedissonClient;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -88,6 +94,24 @@ class BackendApplicationTests {
 
 	@MockitoBean
 	DeviceTokenRepository deviceTokenRepository;
+
+	@MockitoBean
+	RedissonClient redissonClient;
+
+	@MockitoBean
+	EmergencyCardRepository emergencyCardRepository;
+
+	@MockitoBean
+	EmergencyContactRepository emergencyContactRepository;
+
+	@MockitoBean
+	HospitalEmergencyInfoRepository hospitalEmergencyInfoRepository;
+
+	@MockitoBean
+	ParentHospitalRepository parentHospitalRepository;
+
+	@MockitoBean
+	ParentPharmacyRepository parentPharmacyRepository;
 
 	@MockitoBean
 	MfdsClient mfdsClient;

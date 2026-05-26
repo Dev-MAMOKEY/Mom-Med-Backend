@@ -72,7 +72,11 @@ public class ParentService {
                 req.isPregnant(),
                 req.consentDataShare()
         );
-        parentGridService.updateParentGrid(parentId);
+        if (req.nx() != null && req.ny() != null) {
+            profile.updateGrid(req.nx(), req.ny());
+        } else {
+            parentGridService.updateParentGrid(parentId);
+        }
         int medicationCount = (int) medicationRepository.countByParentIdAndDeletedAtIsNull(parentId);
         int allergyCount = (int) allergyRepository.countByParentIdAndDeletedAtIsNull(parentId);
         return ParentProfileResponse.from(profile, medicationCount, allergyCount);

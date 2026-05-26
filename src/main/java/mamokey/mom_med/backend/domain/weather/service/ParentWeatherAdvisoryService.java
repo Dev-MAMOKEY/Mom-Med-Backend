@@ -1,33 +1,88 @@
 package mamokey.mom_med.backend.domain.weather.service;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-
 import mamokey.mom_med.backend.domain.weather.dto.ParentWeatherAdvisoryResponse;
+import mamokey.mom_med.backend.domain.weather.dto.ParentWeatherAdvisoryResponse.GridInfo;
+import mamokey.mom_med.backend.domain.weather.dto.ParentWeatherAdvisoryResponse.ObservedTemps;
 import mamokey.mom_med.backend.domain.weather.dto.WeatherAdvisoryResponse;
+import mamokey.mom_med.backend.domain.weather.model.WeatherAdvisory;
+import mamokey.mom_med.backend.domain.weather.repository.AdvisoryPushLogJdbcRepository;
+import mamokey.mom_med.backend.domain.weather.repository.WeatherObservationDailyJdbcRepository;
+import mamokey.mom_med.backend.domain.weather.repository.WeatherObservationDailyJdbcRepository.ObsResult;
+import mamokey.mom_med.backend.parent.domain.PatientProfile;
+import mamokey.mom_med.backend.parent.repository.PatientProfileRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 /**
- * 부모별 날씨 advisory API를 조립하는 application service입니다.
+ * 부모별 날씨 Advisory 조회 서비스 (Slice 07 v2).
  *
- * <p>Slice 06은 기상청 API를 호출하지 않으므로 현재는 simulate_alert 요청값을 활성 특보처럼 받아 룰 매칭만 검증합니다.
- * 실제 오늘 특보 조회와 알람 피로 방지는 Slice 07에서 이 서비스 앞뒤로 붙습니다.</p>
+ * <p>실제 KMA 관측 DB 또는 simulate_alert 파라미터를 바탕으로 advisory를 조립합니다.</p>
  */
 @Service
 public class ParentWeatherAdvisoryService {
 
-	private final WeatherDiseaseAdvisor weatherDiseaseAdvisor;
+    private final PatientProfileRepository patientProfileRepository;
+    private final WeatherObservationDailyJdbcRepository weatherObsRepo;
+    private final WeatherDiseaseAdvisor weatherDiseaseAdvisor;
+    private final AdvisoryPushLogJdbcRepository advisoryPushLogRepo;
 
-	public ParentWeatherAdvisoryService(WeatherDiseaseAdvisor weatherDiseaseAdvisor) {
-		this.weatherDiseaseAdvisor = weatherDiseaseAdvisor;
-	}
+    public ParentWeatherAdvisoryService(
+            PatientProfileRepository patientProfileRepository,
+            WeatherObservationDailyJdbcRepository weatherObsRepo,
+            WeatherDiseaseAdvisor weatherDiseaseAdvisor,
+            AdvisoryPushLogJdbcRepository advisoryPushLogRepo
+    ) {
+        this.patientProfileRepository = patientProfileRepository;
+        this.weatherObsRepo = weatherObsRepo;
+        this.weatherDiseaseAdvisor = weatherDiseaseAdvisor;
+        this.advisoryPushLogRepo = advisoryPushLogRepo;
+    }
 
-	public ParentWeatherAdvisoryResponse getAdvisories(UUID parentId, LocalDate date, List<String> weatherAlerts) {
-		List<String> diseaseCodes = weatherDiseaseAdvisor.getParentConditions(parentId);
-		List<WeatherAdvisoryResponse> advisories = weatherDiseaseAdvisor.lookupRules(diseaseCodes, weatherAlerts).stream()
-				.map(WeatherAdvisoryResponse::from)
-				.toList();
-		return new ParentWeatherAdvisoryResponse(parentId, date, weatherAlerts == null ? List.of() : weatherAlerts, advisories);
-	}
+    public ParentWeatherAdvisoryResponse getAdvisories(UUID parentId, LocalDate date,
+                                                        List<String> simulateAlerts) {
+        PatientProfile profile = patientProfileRepository.findById(parentId).orElse(null);
+        GridInfo grid = profile != null && profile.getNx() != null
+                ? new GridInfo(profile.getNx().intValue(), profile.getNy().intValue())
+                : null;
+
+        List<String> activeAlerts;
+        ObservedTemps observed;
+
+        if (!simulateAlerts.isEmpty()) {
+            // simulate 모드: 입력된 특보를 그대로 사용
+            activeAlerts = simulateAlerts;
+            observed = null;
+        } else if (grid != null) {
+            // 실제 DB 관측 조회
+            Optional<ObsResult> obs = weatherObsRepo.findByDateAndGrid(
+                    date, profile.getNx(), profile.getNy());
+            if (obs.isPresent()) {
+                activeAlerts = obs.get().derivedAlerts();
+                observed = new ObservedTemps(obs.get().tmx(), obs.get().tmn());
+            } else {
+                activeAlerts = List.of();
+                observed = null;
+            }
+        } else {
+            activeAlerts = List.of();
+            observed = null;
+        }
+
+        List<String> diseaseCodes = weatherDiseaseAdvisor.getParentConditions(parentId);
+        List<WeatherAdvisory> advisories = weatherDiseaseAdvisor.lookupRules(diseaseCodes, activeAlerts);
+
+        List<WeatherAdvisoryResponse> advisoryResponses = advisories.stream()
+                .map(a -> {
+                    Optional<Instant> pushedAt = advisoryPushLogRepo.findLatestSentAt(parentId, a.ruleId(), date);
+                    return WeatherAdvisoryResponse.from(a, pushedAt.isPresent(), pushedAt.orElse(null));
+                })
+                .toList();
+
+        return new ParentWeatherAdvisoryResponse(parentId, date, grid, observed, activeAlerts, advisoryResponses);
+    }
 }

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>FCM 토큰 발급 테스트</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 24px; }
+    .card { background: #fff; border-radius: 12px; padding: 28px; max-width: 680px; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    h1 { font-size: 20px; margin-bottom: 6px; }
+    .subtitle { color: #666; font-size: 13px; margin-bottom: 24px; }
+    label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: #333; }
+    .hint { font-size: 11px; color: #888; margin-bottom: 6px; }
+    input { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+    input:focus { outline: none; border-color: #4285f4; }
+    button { width: 100%; padding: 12px; background: #4285f4; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; }
+    button:hover { background: #3367d6; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .result { margin-top: 20px; padding: 14px; border-radius: 8px; font-size: 13px; display: none; }
+    .result.success { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .result.error   { background: #fdecea; border: 1px solid #f5a4a4; }
+    .token-box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px; word-break: break-all; margin-top: 8px; }
+    .copy-btn { margin-top: 8px; padding: 7px 14px; width: auto; font-size: 12px; background: #555; }
+    .copy-btn:hover { background: #333; }
+    .section-title { font-size: 11px; font-weight: 700; color: #4285f4; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; margin-top: 4px; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+    .steps { background: #fffde7; border: 1px solid #fff176; border-radius: 8px; padding: 14px; font-size: 12px; line-height: 1.8; margin-bottom: 20px; }
+    .steps strong { color: #333; }
+    a { color: #4285f4; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🔔 FCM 토큰 발급기</h1>
+  <p class="subtitle">백엔드 날씨 푸시 테스트용 — FCM 토큰을 발급받아 Postman에서 등록하세요.</p>
+
+  <div class="steps">
+    <strong>값 가져오는 방법:</strong><br>
+    1. <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a> 열기<br>
+    2. <strong>mom-med</strong> 프로젝트 선택<br>
+    3. ⚙️ 프로젝트 설정 → <strong>일반</strong> 탭 → 하단 <strong>"내 앱"</strong> 섹션<br>
+    &nbsp;&nbsp;&nbsp;→ 웹 앱이 없으면 <strong>"앱 추가" → 웹(&lt;/&gt;)</strong> 으로 하나 생성<br>
+    &nbsp;&nbsp;&nbsp;→ <code>apiKey, messagingSenderId, appId</code> 복사<br>
+    4. <strong>클라우드 메시징</strong> 탭 → <strong>웹 푸시 인증서</strong><br>
+    &nbsp;&nbsp;&nbsp;→ 없으면 "생성" → <strong>키 쌍(VAPID Key)</strong> 복사
+  </div>
+
+  <div class="section-title">Firebase 웹 앱 설정</div>
+
+  <label>API Key</label>
+  <div class="hint">프로젝트 설정 → 일반 → 웹 앱 → apiKey</div>
+  <input id="apiKey" type="text" value="AIzaSyDdCEJ1Qr6A-fkl4ezKGjZbuzu-Ys_R6B4" />
+
+  <label>Messaging Sender ID</label>
+  <div class="hint">프로젝트 설정 → 일반 → 프로젝트 번호 (숫자)</div>
+  <input id="senderId" type="text" value="1022760034778" />
+
+  <label>App ID</label>
+  <div class="hint">프로젝트 설정 → 일반 → 웹 앱 → appId</div>
+  <input id="appId" type="text" value="1:1022760034778:web:08d6d79b220c46e446a0e3" />
+
+  <label>VAPID Key (Web Push 인증서)</label>
+  <div class="hint">프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서 → 키 쌍</div>
+  <input id="vapidKey" type="text" value="BIp-1yDN0Qgebs0UvZzRvV5KvWJacx-ubIPus3L-AxyOBe3CjtMrEKo3TXyqMX-sBmuUJzUIoHRSBgFxprYA208" />
+
+  <hr class="divider" />
+
+  <button id="btn" onclick="getToken()">FCM 토큰 발급받기</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+
+  window.getToken = async function () {
+    const apiKey    = document.getElementById('apiKey').value.trim();
+    const senderId  = document.getElementById('senderId').value.trim();
+    const appId     = document.getElementById('appId').value.trim();
+    const vapidKey  = document.getElementById('vapidKey').value.trim();
+    const btn       = document.getElementById('btn');
+    const resultEl  = document.getElementById('result');
+
+    if (!apiKey || !senderId || !appId || !vapidKey) {
+      showError('모든 필드를 입력해주세요.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '요청 중...';
+    resultEl.style.display = 'none';
+
+    try {
+      // 브라우저 지원 여부 확인
+      const supported = await isSupported();
+      if (!supported) {
+        showError('이 브라우저는 FCM Web Push를 지원하지 않습니다. Chrome을 사용해주세요.');
+        return;
+      }
+
+      // 알림 권한 요청
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        showError('알림 권한이 거부되었습니다. 브라우저 주소창 왼쪽 자물쇠 아이콘에서 허용해주세요.');
+        return;
+      }
+
+      // 서비스 워커 명시 등록 후 활성화 대기
+      const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+
+      // Firebase 초기화
+      const app = initializeApp({
+        apiKey,
+        authDomain:        'mom-med.firebaseapp.com',
+        projectId:         'mom-med',
+        storageBucket:     'mom-med.firebasestorage.app',
+        messagingSenderId: senderId,
+        appId,
+      });
+
+      const messaging = getMessaging(app);
+
+      // FCM 토큰 발급 (등록된 SW 명시 전달)
+      const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
+
+      showSuccess(token);
+
+    } catch (err) {
+      showError('오류: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'FCM 토큰 발급받기';
+    }
+  };
+
+  function showSuccess(token) {
+    const el = document.getElementById('result');
+    el.className = 'result success';
+    el.style.display = 'block';
+    el.innerHTML = `
+      <strong>✅ 토큰 발급 성공!</strong><br>
+      아래 토큰을 복사해서 Postman에 붙여넣으세요.<br>
+      <div class="token-box" id="tokenText">${token}</div>
+      <button class="copy-btn" onclick="copyToken()">📋 복사</button>
+      <hr style="margin:12px 0; border-color:#c8e6c9">
+      <strong>Postman 요청:</strong><br>
+      <code>POST /v1/parents/{parentId}/device-tokens</code><br>
+      <div class="token-box">
+{<br>
+&nbsp;&nbsp;"platform": "fcm",<br>
+&nbsp;&nbsp;"token": "${token.substring(0,30)}..."<br>
+}
+      </div>
+    `;
+    window._fcmToken = token;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('result');
+    el.className = 'result error';
+    el.style.display = 'block';
+    el.innerHTML = `<strong>❌ 실패</strong><br>${msg}`;
+  }
+
+  window.copyToken = function () {
+    if (window._fcmToken) {
+      navigator.clipboard.writeText(window._fcmToken)
+        .then(() => alert('토큰이 클립보드에 복사되었습니다!'))
+        .catch(() => {
+          // 수동 복사 fallback
+          const el = document.getElementById('tokenText');
+          const range = document.createRange();
+          range.selectNode(el);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+        });
+    }
+  };
+</script>
+</body>
+</html>

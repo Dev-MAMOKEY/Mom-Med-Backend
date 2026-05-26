@@ -45,6 +45,12 @@ out/
 ### VS Code ###
 .vscode/
 
+### 로컬 개발 설정 (실제 API 키·비밀번호를 담으므로 Git에서 제외) ###
+src/main/resources/application-local.yml
+
+### Firebase 서비스 계정 JSON (비밀키 포함, Git에 올리지 않음) ###
+src/main/resources/*-adminsdk-*.json
+
 ### 로컬에서 내려받은 대용량/민감 데이터는 Git에 올리지 않음 ###
 /data
 /drug_csv

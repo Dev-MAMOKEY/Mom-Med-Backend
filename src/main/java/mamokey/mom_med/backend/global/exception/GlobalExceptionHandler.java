@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,6 +42,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(RsData.fail(400, message));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<RsData<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        String message = String.format("'%s' 파라미터 형식이 올바르지 않습니다: %s", e.getName(), e.getValue());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(RsData.fail(400, message));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<RsData<Void>> handleNoResource(NoResourceFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(RsData.fail(404, e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

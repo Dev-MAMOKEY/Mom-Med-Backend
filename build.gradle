@@ -41,6 +41,9 @@ dependencies {
 	// Slice 06: 기상청 격자 좌표 xlsx를 읽어 ref.region_grid에 적재하기 위한 Excel 파서입니다.
 	implementation 'org.apache.poi:poi-ooxml:5.4.1'
 
+	// Slice 07: Firebase Admin SDK — FCM 푸시 알림 발송에 사용합니다.
+	implementation 'com.google.firebase:firebase-admin:9.4.3'
+
 	// 객체 매핑: DTO와 Entity 변환 코드를 컴파일 시점에 생성합니다.
 	implementation 'org.mapstruct:mapstruct:1.6.3'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
