@@ -43,4 +43,24 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Long> 
             @Param("token") String token,
             @Param("encKey") String encKey
     );
+
+    /** Slice 07: 활성 토큰을 보유한 부모 UUID 목록 (스케줄러 대상 선정) */
+    @Query("SELECT DISTINCT d.parentId FROM DeviceToken d WHERE d.revokedAt IS NULL")
+    List<UUID> findDistinctParentIdsWithActiveTokens();
+
+    /**
+     * Slice 07: FCM 토큰을 복호화하여 반환합니다.
+     * pgp_sym_decrypt로 token_encrypted를 복호화하므로 encKey가 필요합니다.
+     */
+    @Query(value = """
+            SELECT pgp_sym_decrypt(token_encrypted, :encKey)::text
+            FROM app.device_tokens
+            WHERE parent_id = :parentId
+              AND platform  = 'fcm'
+              AND revoked_at IS NULL
+            """, nativeQuery = true)
+    List<String> findDecryptedFcmTokens(
+            @Param("parentId") UUID parentId,
+            @Param("encKey") String encKey
+    );
 }

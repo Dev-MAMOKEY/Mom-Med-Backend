@@ -30,6 +30,9 @@ public record UpdateParentRequest(
 
         Boolean isPregnant,
 
-        Boolean consentDataShare
+        Boolean consentDataShare,
+
+        Short nx,   // 기상청 격자 X (region_grid ETL 없이 직접 지정할 때 사용)
+        Short ny    // 기상청 격자 Y
 ) {
 }

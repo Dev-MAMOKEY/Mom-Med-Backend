@@ -55,6 +55,14 @@ server:
   port: 8080
 
 app:
+  push:
+    firebase:
+      # Firebase 서비스 계정 JSON 파일 경로입니다. 미설정 시 FCM 로그 모드로 동작합니다.
+      service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+  scheduler:
+    weather-push:
+      # 날씨 푸시 스케줄러 cron 표현식입니다. "-"로 설정하면 비활성화됩니다.
+      cron: ${WEATHER_PUSH_CRON:0 30 5 * * *}
   etl:
     weather:
       rules:

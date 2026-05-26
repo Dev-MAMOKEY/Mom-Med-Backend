@@ -127,7 +127,7 @@ BLOCK 응답: `BlockErrorResponse` `{ error: "block", verdict: {...} }` (HTTP 40
 
 - 한 번 커밋된 `V` 파일은 절대 수정 금지. 변경은 새 버전 파일 추가.
 - 문제 발생 시 모든 스키마 + `flyway_schema_history` 테이블 전체 삭제 후 재시작 (pgAdmin에서 Auto commit ON 필수).
-- 현재 최신: V020 (V019: Slice 08 테이블 생성, V020: hospital_emergency_info CHAR→VARCHAR 픽스)
+- 현재 최신: V024 (V019: Slice 08 테이블 생성, V020: hospital_emergency_info CHAR→VARCHAR 픽스, V021: weather_rules, V022: region_grid, V023: emergency_contacts, V024: dur_code 컬럼 확장)
 
 ## 외부 API 키 (application-local.yml)
 
