@@ -1,5 +1,8 @@
 package mamokey.mom_med.backend.domain.weather.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import mamokey.mom_med.backend.domain.weather.dto.EtlRunRequest;
 import mamokey.mom_med.backend.domain.weather.dto.EtlRunStats;
 import mamokey.mom_med.backend.domain.weather.repository.AdvisoryPushLogJdbcRepository;
@@ -19,7 +22,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.List;
 
 /**
  * 날씨 ETL 관리자 API (Slice 07 v2).
@@ -31,6 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/v1/admin/weather")
+@Tag(name = "Weather ETL Admin", description = "날씨 ETL 수동 실행 및 푸시 이력 조회 (Slice 07)")
 public class WeatherEtlAdminController {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
@@ -46,6 +49,17 @@ public class WeatherEtlAdminController {
     }
 
     @PostMapping("/etl-run")
+    @Operation(
+            summary = "날씨 ETL 수동 실행",
+            description = """
+                    매일 05:30 KST 스케줄러와 동일한 ETL 잡을 수동으로 트리거합니다.
+                    - `base_date` 미지정 시 오늘(KST) 기준으로 실행합니다. 형식: `YYYYMMDD`.
+                    - `simulate_alerts` 지정 시 KMA API를 호출하지 않고 해당 특보를 강제 주입합니다 (로컬 테스트용).
+                      예: `["폭염경보", "한파주의보"]`
+                    - Redis 잡 레벨 락으로 동일 날짜 중복 실행을 방지합니다.
+                      이미 실행 중이면 `status=skipped_duplicate_run`을 반환합니다.
+                    """
+    )
     public ResponseEntity<RsData<EtlRunStats>> runEtl(
             @RequestBody(required = false) EtlRunRequest request
     ) {
@@ -56,7 +70,12 @@ public class WeatherEtlAdminController {
     }
 
     @GetMapping("/recent-pushes")
+    @Operation(
+            summary = "최근 N일 푸시 이력 조회",
+            description = "advisory_push_log에서 최근 N일간의 푸시 발송 이력을 반환합니다. 기본값은 7일입니다."
+    )
     public ResponseEntity<RsData<List<RecentPushEntry>>> recentPushes(
+            @Parameter(description = "조회 기간 (일 단위, 기본값 7)")
             @RequestParam(defaultValue = "7") int days
     ) {
         List<RecentPushEntry> entries = advisoryPushLogRepo.findRecentPushes(days);
