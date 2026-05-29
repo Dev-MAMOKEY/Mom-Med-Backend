@@ -7,6 +7,82 @@
 
 ---
 
+## 🐳 도커로 5분 안에 띄우기 (★ 처음 받는 분은 여기부터)
+
+전체 백엔드(Spring Boot + PostgreSQL + Redis)를 한 줄로 띄울 수 있게 컨테이너화되어 있습니다. 어떤 OS·환경이든 동일하게 작동합니다.
+
+### 사전 요구사항
+- **Docker Desktop** 설치 ([Windows](https://docs.docker.com/desktop/install/windows-install/) / [Mac](https://docs.docker.com/desktop/install/mac-install/) / [Linux](https://docs.docker.com/desktop/install/linux/))
+
+### 1. 환경변수 작성
+```bash
+cp .env.example .env
+```
+`.env`를 열어서 **반드시 채워야 할 값** (팀장에게 받기):
+- `POSTGRES_PASSWORD` — 도커 PG 비밀번호 (아무거나 정해도 OK)
+- `APP_ENCRYPTION_KEY` — 32바이트 base64 (팀 공통값)
+- `MFDS_API_KEY` / `HIRA_API_KEY` / `KMA_API_KEY` — 공공데이터포털 인증키 (팀 공통)
+- `GEMINI_API_KEY` — Google AI Studio 키 (팀 공통)
+
+> 보안: `.env`는 `.gitignore`로 제외되어 git에 안 올라갑니다. 팀 비밀번호 매니저에서 받으세요.
+
+### 2. 컨테이너 띄우기
+```bash
+docker compose up -d --build
+```
+첫 빌드는 5~10분 (Java 빌드 + 이미지 다운로드). 두 번째부터 30초.
+
+### 3. 확인
+```bash
+docker compose ps              # 3개 모두 (healthy)
+docker compose logs -f backend # "Started BackendApplication in N seconds"
+```
+- API 문서: http://localhost:8080/swagger-ui.html
+- 데모 시드(부모 2명 + 약 4종 + 어머니 메트포르민)는 **자동으로** Flyway가 적재합니다 → 프론트엔드 BLOCK 시연 즉시 가능.
+
+### 4. DUR 837K행 적재 (선택) — BLOCK 시연 완전체로
+기본 도커 셋업에는 DUR 병용금기 데이터가 비어있습니다. BLOCK 모달이 진짜로 동작하게 하려면:
+
+1. 팀장에게 **DUR CSV 5종 구글드라이브 링크** 받기
+2. 압축 풀고 `backend/dur-data/` 폴더에 5개 CSV 그대로 배치
+3. `.env`에 추가:
+   ```env
+   DUR_DATA_DIR=./dur-data
+   APP_ETL_DUR_ENABLED=true
+   ```
+4. `docker compose down && docker compose up -d` — 첫 부팅 시 1분 ETL 자동 진행 (`docker compose logs -f backend`)
+
+ETL은 idempotent(중복 무시)라 이후 매 부팅에 그대로 둬도 안전합니다.
+
+### 자주 쓰는 명령
+```bash
+docker compose ps                     # 컨테이너 상태
+docker compose logs -f backend        # 백엔드 로그 라이브
+docker compose stop                   # 임시 중지 (데이터 유지)
+docker compose start                  # 다시 시작
+docker compose down                   # 컨테이너 제거 (볼륨 데이터는 남음)
+docker compose down -v                # 완전 삭제 (DB까지 날아감)
+docker compose up -d --build          # 코드 변경 후 재빌드
+```
+
+### 문제 해결
+| 증상 | 해결 |
+|---|---|
+| 포트 8080·15432·16379 충돌 | `.env`의 `BACKEND_PORT` / `POSTGRES_PORT` / `REDIS_PORT` 변경 |
+| `POSTGRES_PASSWORD must be set` 에러 | `.env` 안 만들었음 — `cp .env.example .env` 후 비밀번호 작성 |
+| 호스트에서 `localhost:8080` 응답 없음 (Windows) | IPv6 localhost 해석 이슈 — 프론트엔드 `.env`의 API_BASE_URL을 `127.0.0.1:8080`로 |
+| 데이터 초기화하고 싶음 | `docker compose down -v && docker compose up -d --build` (DB까지 리셋) |
+
+---
+
+## 🛠 도커 안 쓰고 호스트에서 직접 띄우기 (로컬 개발용)
+
+- PostgreSQL 16+, Redis 7+ 호스트에 설치
+- `src/main/resources/application-local.yml` 작성 (DB 비번·API 키 직접 입력 — `.gitignore`로 git 제외됨)
+- `./gradlew bootRun --args='--spring.profiles.active=local'`
+
+---
+
 ## 0. 팀 작업 분담 요약 (★ 가장 먼저 보세요)
 
 > **Track A = 동환** / **Track B = 수종** / **🤝 = 공동 작업**
