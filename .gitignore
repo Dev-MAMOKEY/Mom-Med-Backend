@@ -6,6 +6,21 @@ HELP.md
 .env.*
 !.env.example
 
+# 도커 환경 — 호스트 PG 덤프, DUR CSV 데이터는 git에 안 올림 (용량·공공데이터)
+host_data.sql
+/dur-data/
+*.csv
+
+# 개발 중 발생한 로그
+spring.log
+*.log
+
+# dev 산출물 — NB 추출 진단 텍스트
+/nb_*.txt
+/nb_*.json
+/nb_amlodipine*.txt
+/nb_warfarin*.txt
+
 # Gradle 빌드 캐시와 산출물입니다. 개발자마다 달라지므로 Git에 올리지 않습니다.
 .gradle
 build/

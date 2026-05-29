@@ -5,14 +5,15 @@ services:
     image: postgres:16-alpine
 
     # docker exec, docker ps에서 찾기 쉽도록 컨테이너 이름을 고정합니다.
-    container_name: postgres
+    container_name: mamoki-postgres
 
     # 개발 중 Docker가 재시작되어도 DB 컨테이너가 자동으로 다시 올라오게 합니다.
     restart: unless-stopped
 
     # 호스트 포트는 .env의 POSTGRES_PORT로 바꿀 수 있습니다.
+    # 기본 15432 — 호스트에 PostgreSQL이 이미 5432로 떠 있을 가능성을 회피.
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-15432}:5432"
 
     environment:
       # Docker 컨테이너 내부에 생성할 DB 이름입니다.
@@ -36,15 +37,18 @@ services:
       retries: 5
       start_period: 10s
 
+    networks:
+      - mamoki-net
+
   redis:
     # Redis는 Slice 04의 rate limit, Slice 07의 분산 락, 이후 캐시 계층에서 공통으로 사용하는 인프라입니다.
     # 지금 당장 Slice 01 비즈니스 로직이 Redis를 직접 쓰지는 않지만, Redisson 자동 설정이 있으므로
     # 로컬에서 Spring Boot를 정상 기동하려면 PostgreSQL과 함께 Redis도 떠 있어야 합니다.
     image: redis:7-alpine
-    container_name: redis
+    container_name: mamoki-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-16379}:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -54,9 +58,74 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - mamoki-net
+
+  backend:
+    # Spring Boot 애플리케이션. Dockerfile multi-stage로 빌드.
+    # 어떤 환경에서도 동일하게 작동하도록 모든 외부 의존(DB·Redis·API 키)을 환경변수로 주입.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mamoki-backend
+    restart: unless-stopped
+
+    # 호스트의 8080 포트에 매핑 — 프론트엔드(.env의 EXPO_PUBLIC_API_BASE_URL)에서 접근.
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+
+    # PostgreSQL과 Redis가 healthy 상태가 된 후에만 backend 컨테이너 시작.
+    # Flyway가 빈 DB에 마이그레이션 시도하다 connection refused로 죽는 걸 방지.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    environment:
+      # docker 프로파일 활성화 → application-docker.yml 로드
+      SPRING_PROFILES_ACTIVE: docker
+
+      # 컨테이너 네트워크 내부 호스트명으로 DB/Redis 접속.
+      # (compose 서비스 이름이 자동으로 DNS 등록됨)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-mom_med}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_URL: redis://redis:6379
+
+      # 외부 API 키 — .env에서 받음
+      EXTERNAL_MFDS_API_KEY: ${MFDS_API_KEY:-}
+      EXTERNAL_HIRA_API_KEY: ${HIRA_API_KEY:-}
+      EXTERNAL_KMA_API_KEY: ${KMA_API_KEY:-}
+      EXTERNAL_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+      # pgcrypto 마스터키
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY must be set in .env}
+
+      # DUR CSV ETL — 기본 비활성. CSV 폴더를 마운트한 환경에서만 켜기.
+      APP_ETL_DUR_ENABLED: ${APP_ETL_DUR_ENABLED:-false}
+
+      # JVM 옵션 (Dockerfile에 기본 IPv4 stack — 여기서 추가/override 가능)
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Djava.net.preferIPv4Stack=true}
+
+      TZ: Asia/Seoul
+
+    volumes:
+      # DUR CSV 폴더를 컨테이너로 read-only 마운트 (선택).
+      # 호스트의 DUR_DATA_DIR이 .env에 있으면 자동 마운트.
+      # 없으면 빈 디렉토리라 ETL은 자동 skip.
+      - ${DUR_DATA_DIR:-./dur-empty}:/data/dur:ro
+
+    networks:
+      - mamoki-net
 
 volumes:
   # PostgreSQL 데이터 파일을 보관하는 Docker named volume입니다.
   postgres_data:
   # Redis AOF/개발 캐시 데이터를 보존하는 Docker named volume입니다.
   redis_data:
+
+networks:
+  # 모든 서비스(postgres·redis·backend)가 한 네트워크 안에서 서비스 이름으로 통신.
+  mamoki-net:
+    driver: bridge

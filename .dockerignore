@@ -1,0 +1,43 @@
+# 빌드 컨텍스트에서 제외 — 이미지 크기·빌드 속도 최적화
+# Dockerfile이 COPY로 끌어다 쓰는 파일만 컨텍스트에 보내면 됨
+
+# Gradle 빌드 산물 / 캐시
+build/
+.gradle/
+*.log
+spring.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# 도커 자체
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 환경 변수 파일은 빌드 시점이 아니라 런타임에 주입 (compose env_file)
+.env
+.env.local
+*.env
+
+# Windows 전용 스크립트
+start-with-etl.ps1
+
+# 문서·외부 산출물 — 런타임 코드 외
+docs/
+issues_v2/
+api-types/
+*.md
+*.html
+
+# Spring Boot dev 산출물 (백엔드 root의 nb_*.txt / nb_*_extracted.json 같은 진단 파일)
+/nb_*.txt
+/nb_*.json
+HELP.md

@@ -1,0 +1,71 @@
+# =============================================================================
+# Docker 컨테이너 실행 전용 프로파일.
+# docker-compose의 backend 서비스가 SPRING_PROFILES_ACTIVE=docker로 활성화함.
+#
+# 핵심 차이 (application-local.yml과 비교):
+#  - DB host: 127.0.0.1 → 'postgres' (compose 서비스 이름)
+#  - Redis host: 127.0.0.1 → 'redis' (compose 서비스 이름)
+#  - DUR CSV 경로: 호스트 절대경로 → 컨테이너 내 마운트 경로 (/data/dur/)
+#  - 모든 API 키 / 비밀번호: 환경변수에서 주입 (.env)
+# =============================================================================
+spring:
+  datasource:
+    # compose 네트워크에서는 서비스 이름이 호스트명. 환경변수 SPRING_DATASOURCE_URL로 override 가능.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/mom_med}
+    username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD}}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+
+  jpa:
+    # 컨테이너에선 SQL 로그 끔 (운영 친화). 디버그 필요 시 환경변수로 override.
+    show-sql: false
+
+  data:
+    redis:
+      url: ${SPRING_DATA_REDIS_URL:redis://redis:6379}
+
+  flyway:
+    # 운영 마이그레이션(db/migration)에 더해 데모 시드(db/migration-demo)를 추가 로드.
+    # docker 프로파일에서만 활성 → 운영 DB에는 시드가 들어가지 않음.
+    # V900으로 번호 부여 — 향후 운영 마이그레이션이 V100~V200대로 늘어나도 충돌 없음.
+    locations: classpath:db/migration,classpath:db/migration-demo
+
+external:
+  mfds:
+    api-key: ${EXTERNAL_MFDS_API_KEY:}
+  hira:
+    api-key: ${EXTERNAL_HIRA_API_KEY:}
+  kma:
+    api-key: ${EXTERNAL_KMA_API_KEY:}
+  gemini:
+    api-key: ${EXTERNAL_GEMINI_API_KEY:}
+    model: ${EXTERNAL_GEMINI_MODEL:gemini-2.5-flash-lite}
+    prompt-version: ${EXTERNAL_GEMINI_PROMPT_VERSION:v1}
+
+app:
+  encryption-key: ${APP_ENCRYPTION_KEY}
+  push:
+    firebase:
+      service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+  scheduler:
+    weather-push:
+      # 컨테이너에선 cron 기본 off (운영에서 명시적으로 켜기)
+      cron: ${WEATHER_PUSH_CRON:-}
+  etl:
+    dur:
+      # docker-compose에서 호스트 CSV 폴더를 /data/dur로 마운트하면 이 경로로 자동 동작.
+      # 활성/비활성은 APP_ETL_DUR_ENABLED 환경변수로 제어.
+      combo-path: ${APP_ETL_DUR_COMBO_PATH:/data/dur/combo.csv}
+      elderly-path: ${APP_ETL_DUR_ELDERLY_PATH:/data/dur/elderly.csv}
+      elderly-nsaid-path: ${APP_ETL_DUR_ELDERLY_NSAID_PATH:/data/dur/elderly_nsaid.csv}
+      age-path: ${APP_ETL_DUR_AGE_PATH:/data/dur/age.csv}
+      pregnancy-path: ${APP_ETL_DUR_PREGNANCY_PATH:/data/dur/pregnancy.csv}
+
+logging:
+  level:
+    # 운영 친화 — 디버그 필요 시 환경변수로 override (LOGGING_LEVEL_ROOT 등)
+    org.hibernate.SQL: INFO
+    mamokey.mom_med: INFO
