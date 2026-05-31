@@ -1,0 +1,79 @@
+# =============================================================================
+# RDS(B 방식) 배포용 compose.
+#   - PostgreSQL은 AWS RDS(관리형)에 접속만 한다 → postgres 컨테이너 없음.
+#   - Redis는 컨테이너로 함께 띄운다.
+#   - backend는 미리 push된 이미지를 pull 해서 실행 (build 아님).
+#
+# 실행: docker compose -f docker-compose.rds.yml up -d
+# 종료: docker compose -f docker-compose.rds.yml down
+#
+# 필요한 .env 값: RDS_DB_URL / RDS_DB_USER / RDS_DB_PASSWORD / APP_ENCRYPTION_KEY
+#                 + 외부 API 키들. (.env.example 참고)
+# =============================================================================
+services:
+  redis:
+    # Slice 04 rate limit, Slice 07 분산 락에 필요. 컨테이너 내부에서만 접근하므로 포트 노출 불필요.
+    image: redis:7-alpine
+    container_name: mamoki-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - mamoki-net
+
+  backend:
+    # Docker Hub 등 레지스트리에 push된 이미지를 사용. 본인 이미지 경로로 바꾸세요.
+    image: ${BACKEND_IMAGE:-kdh9695/mom-med-backend:0.0.1}
+    container_name: mamoki-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    environment:
+      # docker 프로파일 → application-docker.yml 로드 (demo 시드 포함)
+      SPRING_PROFILES_ACTIVE: docker
+
+      # ---- RDS 접속 (AWS 콘솔 > RDS > 엔드포인트) ----
+      # 예) jdbc:postgresql://my-db.xxxx.ap-northeast-2.rds.amazonaws.com:5432/mom_med
+      SPRING_DATASOURCE_URL: ${RDS_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${RDS_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${RDS_DB_PASSWORD}
+
+      # ---- Redis (컨테이너) ----
+      SPRING_DATA_REDIS_URL: redis://redis:6379
+
+      # ---- 외부 API 키 ----
+      EXTERNAL_MFDS_API_KEY: ${MFDS_API_KEY:-}
+      EXTERNAL_HIRA_API_KEY: ${HIRA_API_KEY:-}
+      EXTERNAL_KMA_API_KEY: ${KMA_API_KEY:-}
+      EXTERNAL_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+      # ---- 보안 ----
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY must be set in .env}
+
+      # DUR CSV ETL — RDS에 이미 적재돼 있으면 false 유지.
+      APP_ETL_DUR_ENABLED: ${APP_ETL_DUR_ENABLED:-false}
+
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Djava.net.preferIPv4Stack=true}
+      TZ: Asia/Seoul
+
+    networks:
+      - mamoki-net
+
+volumes:
+  redis_data:
+
+networks:
+  mamoki-net:
+    driver: bridge
